@@ -17,7 +17,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#ifndef WINDOWS
 #include <dlfcn.h>
+#endif
 #include <signal.h>
 #include "private.h"
 #include "utlist.h"
@@ -52,7 +54,7 @@ static char* absolutize(char* basePath, char* rel, char* dest) {
 static jboolean blockSigPipe() {
     sigset_t set;
     sigemptyset(&set);
-    sigaddset(&set, SIGPIPE);
+    // BLEGA sigaddset(&set, SIGPIPE);
     if (sigprocmask(SIG_BLOCK, &set, NULL) != 0) {
         return FALSE;
     }
@@ -307,7 +309,7 @@ DynamicLib* rvmOpenDynamicLib(Env* env, const char* file, char** errorMsg) {
     *errorMsg = NULL;
     DynamicLib* dlib = NULL;
 
-    void* handle = dlopen(file, RTLD_LOCAL | RTLD_LAZY);
+    void* handle = NULL ; // BLEGA dlopen(file, RTLD_LOCAL | RTLD_LAZY);
     if (!handle) {
         *errorMsg = dlerror();
         TRACEF("Failed to load dynamic library '%s': %s", file, *errorMsg);

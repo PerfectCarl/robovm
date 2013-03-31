@@ -30,6 +30,8 @@
 #define PTR_TO_LONG(p) ((jlong) (intptr_t) p)
 #define LONG_TO_PTR(l) ((void*) (intptr_t) l)
 
+#undef interface 
+
 typedef struct Field Field;
 typedef struct ClassField ClassField;
 typedef struct InstanceField InstanceField;

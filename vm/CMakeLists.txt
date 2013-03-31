@@ -18,7 +18,7 @@ endif()
 if(NOT OS)
   message(FATAL_ERROR "OS not set")
 endif()
-if(NOT OS MATCHES "^(linux|macosx|ios)$")
+if(NOT OS MATCHES "^(linux|macosx|ios|windows)$")
   message(FATAL_ERROR "Unsupported OS: ${OS}")
 endif()
 
@@ -33,6 +33,10 @@ elseif(OS STREQUAL "ios")
   set(IOS YES)
   set(DARWIN YES)
   set(OS_FAMILY darwin)
+elseif(OS STREQUAL "windows")
+  set(WINDOWS YES)
+  set(OS_FAMILY windows)
+  set(CMAKE_CROSSCOMPILING NO)
 endif()
 
 if (ARCH STREQUAL "x86")
@@ -111,7 +115,9 @@ if(IOS)
 endif()
 
 # Set up global C and C++ compiler flags
-set(C_CXX_FLAGS "${C_CXX_FLAGS} -Wall -fvisibility=hidden -fdata-sections -ffunction-sections")
+# set(C_CXX_FLAGS "${C_CXX_FLAGS} -Wall -fvisibility=hidden -fdata-sections -ffunction-sections")
+# BLEGA
+set(C_CXX_FLAGS "${C_CXX_FLAGS} -fvisibility=hidden -fdata-sections -ffunction-sections")
 set(C_CXX_FLAGS "${C_CXX_FLAGS} -fno-omit-frame-pointer") # The unwind code relies on frame pointers being present.
 if(CARCH)
   set(C_CXX_FLAGS "${C_CXX_FLAGS} -arch ${CARCH}")
@@ -170,6 +176,9 @@ elseif(DARWIN)
     add_definitions(-DIOS)
   endif()
   add_definitions(-DDARWIN)
+elseif(WINDOWS)
+    add_definitions(-DWINDOWS)
+    add_definitions(-DWIN32)
 endif()
 
 if (ARCH STREQUAL "x86")
@@ -187,6 +196,15 @@ endif()
 set(LIB_SUFFIX ".a")
 if (CMAKE_BUILD_TYPE STREQUAL "debug")
   set(LIB_SUFFIX "-dbg.a")
+endif()
+
+
+if(WINDOWS)
+  set(EXT_HOST --enable-targets=host-only)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
 endif()
 
 set(INSTALL_DIR ${CMAKE_SOURCE_DIR}/target/binaries/${OS}/${ARCH})
@@ -217,6 +235,9 @@ if(DARWIN)
     endif()
   endif()
 endif()
+
+
+message(STATUS "EXT_HOST: ${EXT_HOST}")
 
 set(EXTGC_C_FLAGS "${EXT_C_FLAGS}")
 set(EXTGC_LD_FLAGS "${EXT_LD_FLAGS}")
