@@ -77,6 +77,11 @@ DSO_METHOD *DSO_METHOD_dlfcn(void)
 	}
 #else
 
+// CARL dll. Where is this defined in the fisrt place ?
+#ifdef WINDOWS 
+#undef HAVE_DLFCN_H
+#endif 
+
 #ifdef HAVE_DLFCN_H
 # ifdef __osf__
 #  define __EXTENSIONS__
@@ -169,7 +174,12 @@ static int dlfcn_load(DSO *dso)
 	void *ptr = NULL;
 	/* See applicable comments in dso_dl.c */
 	char *filename = DSO_convert_filename(dso, NULL);
+// CARL : dll
+#ifdef WINDOWS
+	int flags = 0;
+#else
 	int flags = DLOPEN_FLAG;
+#endif
 
 	if(filename == NULL)
 		{
@@ -471,8 +481,12 @@ static int dlfcn_pathbyaddr(void *addr,char *path,int sz)
 
 static void *dlfcn_globallookup(const char *name)
 	{
-	void *ret = NULL,*handle = dlopen(NULL,RTLD_LAZY);
-	
+// CARL dll
+#ifdef WINDOWS
+	void *ret = NULL,*handle = NULL ;
+#else
+	void *ret = NULL,*handle = dlopen(NULL,RTLD_LAZY);	
+#endif
 	if (handle)
 		{
 		ret = dlsym(handle,name);
