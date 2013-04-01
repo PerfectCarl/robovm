@@ -36,7 +36,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 // RoboVM note: There's no sys/vfs.h on Darwin and it's not required to compile this file
-// CARL : also applies for Windows
+// CARL io : vfs not present on Windows
 #if !defined(__APPLE__) && !defined(WINDOWS)
 #   include <sys/vfs.h>
 #endif

@@ -3,7 +3,7 @@
 SET BASE=C:\Users\Evasion\Dropbox\docs\projects\robovm\robovm\vm\
 SET BASE=%~dp0
 
-echo BASE : %BASE%
+rem echo BASE : %BASE%
 
 SET OS=windows
 SET ARCH=x86
@@ -20,7 +20,7 @@ SET MAKE_TYPE="MSYS Makefiles"
 REM --- 
 REM Compiler : clang
 REM --- 
-SET CC=clang
+REM SET CC=clang
 rem TEMP
 rem SET CC=llvm-gcc
 rem SET CLANG_PATH=%MINGW_PATH%\clang
@@ -31,7 +31,7 @@ rem SET PATH=%PATH%;%CLANG_PATH%\bin
 REM --- 
 REM Compiler : gcc
 REM --- 
-REM SET CC=
+SET CC=
 
 
 REM SET CMAKE_OPTS=

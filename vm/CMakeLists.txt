@@ -34,17 +34,26 @@ elseif(OS STREQUAL "ios")
   set(DARWIN YES)
   set(OS_FAMILY darwin)
 elseif(OS STREQUAL "windows")
-  set(WINDOWS YES)
-  # uc4c gettext
-  set(U_WINDOWS YES)
-  set(U_MINGW YES)
   set(OS_FAMILY windows)
   set(CMAKE_CROSSCOMPILING NO)
+  set(WINDOWS YES)
+  # uc4c gettext
+  add_definitions(-DU_MINGW)
   # STL + Clang
-  include_directories(
-	 c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include
-	 C:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include/c++
-  )
+  #   include_directories(
+  # 	 c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include
+  # 	 C:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include/c++
+  #   )
+  # STL error
+  # In file included from c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/method.c:18:
+  # c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include\unwind.h:43:46: error: unknown machine mode '__unwind_word__'typedef unsigned _Unwind_Word __attribute__((__mode__(__unwind_word__)));
+  #                                              ^
+  # c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include\unwind.h:44:45: error: unknown machine mode '__unwind_word__'typedef signed _Unwind_Sword __attribute__((__mode__(__unwind_word__)));
+  #                                             ^
+  # 2 errors generated.
+  # make[2]: *** [core/src/CMakeFiles/robovm-core.dir/method.c.obj] Error 1
+  # make[1]: *** [core/src/CMakeFiles/robovm-core.dir/all] Error 2
+  # make: *** [all] Error 2
 
 endif()
 
