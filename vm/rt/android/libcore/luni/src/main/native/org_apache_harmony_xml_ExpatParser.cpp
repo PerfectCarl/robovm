@@ -559,10 +559,16 @@ private:
 
         // split the input into up to 3 parts: a|b|c
         char* context = NULL;
+// CARL strtok_r
+#ifdef WINDOWS
+	    char* a = "CARL WINDOWS BUILD";
+        char* b = "CARL WINDOWS BUILD";
+        char* c = "CARL WINDOWS BUILD";
+#else
         char* a = strtok_r(mCopy, "|", &context);
         char* b = strtok_r(NULL, "|", &context);
         char* c = strtok_r(NULL, "|", &context);
-
+#endif
         if (c != NULL) { // input of the form "uri|localName|prefix"
             mUri = a;
             mLocalName = b;

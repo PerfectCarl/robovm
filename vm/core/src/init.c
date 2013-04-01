@@ -54,7 +54,10 @@ static char* absolutize(char* basePath, char* rel, char* dest) {
 static jboolean blockSigPipe() {
     sigset_t set;
     sigemptyset(&set);
-    // BLEGA sigaddset(&set, SIGPIPE);
+    // CARL : posix ? pipe ? 
+#ifndef WINDOWS	
+	sigaddset(&set, SIGPIPE);
+#endif
     if (sigprocmask(SIG_BLOCK, &set, NULL) != 0) {
         return FALSE;
     }
@@ -308,8 +311,13 @@ void rvmAbort(char* format, ...) {
 DynamicLib* rvmOpenDynamicLib(Env* env, const char* file, char** errorMsg) {
     *errorMsg = NULL;
     DynamicLib* dlib = NULL;
+// CARL dll
+#ifdef WINDOWS
+    void* handle = NULL ; 
+#else
+	void* handle = dlopen(file, RTLD_LOCAL | RTLD_LAZY);
+#endif
 
-    void* handle = NULL ; // BLEGA dlopen(file, RTLD_LOCAL | RTLD_LAZY);
     if (!handle) {
         *errorMsg = dlerror();
         TRACEF("Failed to load dynamic library '%s': %s", file, *errorMsg);
