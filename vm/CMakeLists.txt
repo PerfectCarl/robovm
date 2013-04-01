@@ -35,8 +35,17 @@ elseif(OS STREQUAL "ios")
   set(OS_FAMILY darwin)
 elseif(OS STREQUAL "windows")
   set(WINDOWS YES)
+  # uc4c gettext
+  set(U_WINDOWS YES)
+  set(U_MINGW YES)
   set(OS_FAMILY windows)
   set(CMAKE_CROSSCOMPILING NO)
+  # STL + Clang
+  include_directories(
+	 c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include
+	 C:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include/c++
+  )
+
 endif()
 
 if (ARCH STREQUAL "x86")
@@ -116,8 +125,8 @@ endif()
 
 # Set up global C and C++ compiler flags
 # set(C_CXX_FLAGS "${C_CXX_FLAGS} -Wall -fvisibility=hidden -fdata-sections -ffunction-sections")
-# BLEGA
-set(C_CXX_FLAGS "${C_CXX_FLAGS} -fvisibility=hidden -fdata-sections -ffunction-sections")
+# CARL : Warnings
+set(C_CXX_FLAGS "${C_CXX_FLAGS} -Wall -fvisibility=hidden -fdata-sections -ffunction-sections")
 set(C_CXX_FLAGS "${C_CXX_FLAGS} -fno-omit-frame-pointer") # The unwind code relies on frame pointers being present.
 if(CARCH)
   set(C_CXX_FLAGS "${C_CXX_FLAGS} -arch ${CARCH}")
@@ -212,6 +221,8 @@ set(INSTALL_DIR ${CMAKE_SOURCE_DIR}/target/binaries/${OS}/${ARCH})
 message(STATUS "ARCH: ${ARCH}")
 message(STATUS "OS: ${OS}")
 message(STATUS "SYSROOT: ${SYSROOT}")
+message(STATUS "U_WINDOWS: ${U_WINDOWS}")
+message(STATUS "U_MINGW: ${U_MINGW}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
 message(STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")

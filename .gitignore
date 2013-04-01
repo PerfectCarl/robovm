@@ -1,5 +1,6 @@
 *~
 *.o
+*.obj
 a.out
 *.class
 .*
@@ -8,3 +9,5 @@ target/
 /tests/drlvm-vts-bundle/
 /eclipse/ui/lib/
 /tmp/
+/CMakeFiles/
+/*dir/
