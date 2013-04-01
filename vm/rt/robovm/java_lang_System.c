@@ -19,13 +19,19 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <limits.h>
+
+//CARL posix
+#ifndef WINDOWS
 #include <pwd.h>
 #include <sys/utsname.h>
+#endif 
+
 #include <string.h>
 #ifdef DARWIN
 #   include <mach/mach_time.h>
 #endif
 
+// CARL posix ? dll ?
 #define DSO_PREFIX "lib"
 #define DSO_EXT ".so"
 #if defined(DARWIN)
@@ -52,10 +58,15 @@ jlong Java_java_lang_System_nanoTime(JNIEnv* env, jclass clazz) {
     t *= info.numer;
     t /= info.denom;
     return (jlong) t;
+#else 
+#ifdef WINDOWS
+	// CARL posix
+	return 0 ;
 #else
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (jlong) ts.tv_sec * 1000000000LL + ts.tv_nsec;
+#endif
 #endif
 }
 
