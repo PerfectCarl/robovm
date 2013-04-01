@@ -21,6 +21,12 @@
 
 #include <errno.h>
 #include <fcntl.h>
+
+// CARL : network
+#ifdef WINDOWS
+#include <winsock.h>
+#include <ws2tcpip.h>
+#else
  // RoboVM note: On Darwin sys/socket.h must be included before net/if.h to prevent compilation errors
 #include <sys/socket.h>
 #include <net/if.h>
@@ -28,12 +34,26 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <poll.h>
+#endif
+
 #include <signal.h>
 #include <stdlib.h>
+// CARL io
+#ifndef WINDOWS
 #include <sys/ioctl.h>
+#endif
+
+// CARL mman
+#ifndef WINDOWS
 #include <sys/mman.h>
+#endif
+
 #include <sys/stat.h>
+// CARL wait.h
+#ifndef WINDOWS
 #include <sys/wait.h>
+#endif
+
 #include <unistd.h>
 
 static void initConstant(JNIEnv* env, jclass c, const char* fieldName, int value) {
@@ -42,6 +62,8 @@ static void initConstant(JNIEnv* env, jclass c, const char* fieldName, int value
 }
 
 extern "C" void Java_libcore_io_OsConstants_initConstants(JNIEnv* env, jclass c) {
+// CARL constants
+#ifndef WINDOWS
     initConstant(env, c, "AF_INET", AF_INET);
     initConstant(env, c, "AF_INET6", AF_INET6);
     initConstant(env, c, "AF_UNIX", AF_UNIX);
@@ -510,5 +532,6 @@ extern "C" void Java_libcore_io_OsConstants_initConstants(JNIEnv* env, jclass c)
     initConstant(env, c, "_SC_XOPEN_UNIX", _SC_XOPEN_UNIX);
     initConstant(env, c, "_SC_XOPEN_VERSION", _SC_XOPEN_VERSION);
     initConstant(env, c, "_SC_XOPEN_XCU_VERSION", _SC_XOPEN_XCU_VERSION);
+#endif //#ifndef WINDOWS
 }
 
