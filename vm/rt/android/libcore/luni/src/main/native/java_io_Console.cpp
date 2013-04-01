@@ -21,11 +21,22 @@
 #include "JniConstants.h"
 
 #include <errno.h>
+// CARL termio
+#ifdef WINDOWS
+#include <windows.h>
+#include <wincon.h>
+#include <conio.h>
+#else
 #include <termios.h>
+#endif
 #include <unistd.h>
 
 extern "C" jint Java_java_io_Console_setEchoImpl(JNIEnv* env, jclass, jboolean on, jint previousState) {
-    termios state;
+// CARL termio
+#ifdef WINDOWS 
+	return 0;
+#else
+	termios state;
     if (TEMP_FAILURE_RETRY(tcgetattr(STDIN_FILENO, &state)) == -1) {
         jniThrowIOException(env, errno);
         return 0;
@@ -41,5 +52,6 @@ extern "C" jint Java_java_io_Console_setEchoImpl(JNIEnv* env, jclass, jboolean o
         return 0;
     }
     return previousState;
+#endif
 }
 
