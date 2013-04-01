@@ -36,7 +36,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 // RoboVM note: There's no sys/vfs.h on Darwin and it's not required to compile this file
-#if !defined(__APPLE__)
+// CARL : also applies for Windows
+#if !defined(__APPLE__) && !defined(WINDOWS)
 #   include <sys/vfs.h>
 #endif
 #include <time.h>
@@ -115,8 +116,21 @@ public:
             return NULL;
         }
         dirent* result = NULL;
+
+// CARL : io 
+		
+//c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libcore/luni/src/main/native/java_io_File.cpp: In member function 'const char* ScopedReaddir::next()':
+//c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libcore/luni/src/main/native/java_io_File.cpp:119:56:error: 'readdir_r' was not declared in this scope
+//make[2]: *** [rt/android/libcore/luni/src/main/native/CMakeFiles/android-libcore-luni.dir/java_io_File.cpp.obj] Error 1
+//make[1]: *** [rt/android/libcore/luni/src/main/native/CMakeFiles/android-libcore-luni.dir/all] Error 2
+//make: *** [all] Error 2
+
+#ifdef WINDOWS 
+		int rc = 0 ; 
+#else 
         int rc = readdir_r(mDirStream, &mEntry, &result);
-        if (rc != 0) {
+#endif
+		if (rc != 0) {
             mIsBad = true;
             return NULL;
         }
