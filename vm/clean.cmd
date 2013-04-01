@@ -1,4 +1,3 @@
-@echo off
 
 @echo off
 cls 
