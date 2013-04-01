@@ -26,8 +26,13 @@ bool readlink(const char* path, std::string& result) {
     size_t bufSize = 512;
     while (true) {
         LocalArray<512> buf(bufSize);
+// CARL : misc C
+#ifdef WINDOWS
+		ssize_t len = NULL ;
+#else
         ssize_t len = readlink(path, &buf[0], buf.size());
-        if (len == -1) {
+#endif
+		if (len == -1) {
             // An error occurred.
             return false;
         }
