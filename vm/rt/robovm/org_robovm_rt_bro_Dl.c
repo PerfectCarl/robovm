@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ // CARL dll
+#ifdef WINDOWS
+//#include "dlfcn.h"
+#else
 #include <dlfcn.h>
+#endif
 #include <robovm.h>
 
 jlong Java_org_robovm_rt_bro_Dl_open(Env* env, Class* c, Object* name) {
@@ -22,9 +27,14 @@ jlong Java_org_robovm_rt_bro_Dl_open(Env* env, Class* c, Object* name) {
         cName = rvmGetStringUTFChars(env, name);
         if (!cName) return 0;
     }
+ // CARL dll
+#ifdef WINDOWS
+    void* handle = NULL ;
+#else
+	void* handle = dlopen(cName, RTLD_LOCAL | RTLD_LAZY);
+#endif
 
-    void* handle = dlopen(cName, RTLD_LOCAL | RTLD_LAZY);
-    if (!handle) {
+if (!handle) {
         return 0;
     }
     return PTR_TO_LONG(handle);
