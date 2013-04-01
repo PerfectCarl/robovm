@@ -71,8 +71,8 @@ static jint AttachCurrentThreadAsDaemon(JavaVM* vm, void** penv, void* args) {
     return rvmAttachCurrentThreadAsDaemon((VM*) vm, (Env**) penv, name, group);
 }
 
-// BLEGA
-static jint GetVersionBLEGA(JNIEnv* env) {
+// CARL name collision
+static jint GetJniVersion(JNIEnv* env) {
     return JNI_VERSION_1_4;
 }
 
