@@ -13,7 +13,7 @@ echo -----------------------------------------------------
 echo.    
 
 rem echo base dir : %BASE%\target\build\%T%-%B%
-cd %BASE%\target\build\%T%-%B%
+cd %BASE%target\build\%T%-%B%
 rem %CMAKE_BIN% 
 rem "%MAKE_BIN%" install
 make install

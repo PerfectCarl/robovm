@@ -14,16 +14,16 @@ echo    Cleaning build for %OS%, %ARCH%, %BUILD_TYPE% ...
 echo -----------------------------------------------------
 echo.
 
-del %BASE_ROOT%\CMakeCache.txt
-echo Deleted : %BASE_ROOT%\CMakeCache.txt
-del %BASE_ROOT%\Makefile
-echo Deleted : %BASE_ROOT%\Makefile
-rmdir /Q /S %BASE_ROOT%\target\build\%T%-%B%
-echo Deleted : %BASE_ROOT%\target\build\%T%-%B%
-rmdir /Q /S %BASE_ROOT%\binaries\%OS%\%ARCH%\%B%
-echo Deleted : %BASE_ROOT%\binaries\%OS%\%ARCH%\%B%
-rmdir /Q /S %BASE_ROOT%\CMakeFiles
-echo Deleted : %BASE_ROOT%\CMakeFiles
+del %BASE_ROOT%CMakeCache.txt
+echo Deleted : %BASE_ROOT%CMakeCache.txt
+del %BASE_ROOT%Makefile
+echo Deleted : %BASE_ROOT%Makefile
+rmdir /Q /S %BASE_ROOT%target\build\%T%-%B%
+echo Deleted : %BASE_ROOT%target\build\%T%-%B%
+rmdir /Q /S %BASE_ROOT%binaries\%OS%\%ARCH%\%B%
+echo Deleted : %BASE_ROOT%binaries\%OS%\%ARCH%\%B%
+rmdir /Q /S %BASE_ROOT%CMakeFiles
+echo Deleted : %BASE_ROOT%CMakeFiles
 
 cd %BASE%
 make clean
@@ -47,8 +47,8 @@ SET CMAKE_BIN=%CMAKE_BIN%  %BASE%
 SET CMAKE_BIN=%CMAKE_BIN%  -G %MAKE_TYPE% 
 REM generate files 
 
-mkdir  %BASE%\target\build\%T%-%B%
-cd %BASE%\target\build\%T%-%B%
+mkdir  %BASE%target\build\%T%-%B%
+cd %BASE%target\build\%T%-%B%
 %CMAKE_BIN% 
 cd %BASE%
 

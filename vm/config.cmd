@@ -1,7 +1,9 @@
 
 @echo off
-SET BASE=C:\Users\Evasion\Dropbox\docs\projects\robovm\robovm\vm
+SET BASE=C:\Users\Evasion\Dropbox\docs\projects\robovm\robovm\vm\
+SET BASE=%~dp0
 
+echo BASE : %BASE%
 
 SET OS=windows
 SET ARCH=x86
