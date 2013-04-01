@@ -181,6 +181,7 @@ inline void jniLogException(JNIEnv* env, int priority, const char* tag, jthrowab
  * not already defined, then define it here.
  */
 #ifndef TEMP_FAILURE_RETRY
+
 /* Used to retry syscalls that can return EINTR. */
 #define TEMP_FAILURE_RETRY(exp) ({         \
     typeof (exp) _rc;                      \
