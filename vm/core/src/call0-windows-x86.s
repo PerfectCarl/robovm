@@ -26,7 +26,7 @@ CallInfo_size         = 28
     .globl _call0
     
     .align    16, 0x90
-// CARL : ASM   .type    call0, @function
+// CARL : ASM TODO  .type    call0, @function
 call0:
 .Lcall0Begin:
     push  %ebp
@@ -49,5 +49,5 @@ call0:
     leave
     ret
 
-// CARL : ASM  .size call0, . - .Lcall0Begin
+// CARL : ASM TODO .size call0, . - .Lcall0Begin
 .Lcall0End:
