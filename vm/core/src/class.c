@@ -471,10 +471,13 @@ jboolean rvmIsAssignableFrom(Env* env, Class* s, Class* t) {
     if (CLASS_IS_INTERFACE(t)) {
         // s or any of its parents must implement the interface t
         for (; s; s = s->superclass) {
-            Interface* interface = rvmGetInterfaces(env, s);
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
+
+            Interface* interfaze = rvmGetInterfaces(env, s);
             if (rvmExceptionCheck(env)) return FALSE;
-            for (; interface != NULL; interface = interface->next) {
-                if (rvmIsAssignableFrom(env, interface->interface, t)) {
+            for (; interfaze != NULL; interfaze = interfaze->next) {
+                if (rvmIsAssignableFrom(env, interfaze->interfaze, t)) {
                     return TRUE;
                 }
             }
@@ -807,13 +810,16 @@ jboolean rvmAddInterface(Env* env, Class* clazz, Class* interf) {
         rvmThrowIncompatibleClassChangeError(env, "");
         return FALSE;
     }
-    Interface* interface = rvmAllocateMemory(env, sizeof(Interface));
-    if (!interface) return FALSE;
-    interface->interface = interf;
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
+
+    Interface* interfaze = rvmAllocateMemory(env, sizeof(Interface));
+    if (!interfaze) return FALSE;
+    interfaze->interfaze = interf;
     if (clazz->_interfaces == &INTERFACES_NOT_LOADED) {
         clazz->_interfaces = NULL;
     }
-    LL_APPEND(clazz->_interfaces, interface);
+    LL_APPEND(clazz->_interfaces, interfaze);
     return TRUE;
 }
 

@@ -124,7 +124,9 @@ extern jboolean rvmInitPrimitiveWrapperClasses(Env* env);
 extern Class* rvmAllocateClass(Env* env, const char* className, Class* superclass, ClassLoader* classLoader, jint flags, 
 		jint classDataSize, jint instanceDataSize, jint instanceDataOffset, unsigned short classRefCount, unsigned short instanceRefCount, 
         void* attributes, void* initializer);
-extern jboolean rvmAddInterface(Env* env, Class* clazz, Class* interface);
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
+extern jboolean rvmAddInterface(Env* env, Class* clazz, Class* interfaze);
 extern Field* rvmAddField(Env* env, Class* clazz, const char* name, const char* desc, jint access, jint offset, void* attributes);
 extern Method* rvmAddMethod(Env* env, Class* clazz, const char* name, const char* desc, jint access, jint size, void* impl, void* synchronizedImpl, void* attributes);
 extern BridgeMethod* rvmAddBridgeMethod(Env* env, Class* clazz, const char* name, const char* desc, jint access, jint size, void* impl, 

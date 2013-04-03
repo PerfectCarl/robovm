@@ -49,9 +49,11 @@ make[2]: *** [core/src/CMakeFiles/robovm-core.dir/proxy0-windows-x86.s.obj] Erro
     .text
 
     .globl _proxy0
-
+// CARL asm DONE
     .align    16, 0x90
-// CARL    .type    _proxy0, @function
+        .def    _proxy0; .scl    2;      .type   32;    
+.endef 
+
 proxy0:
 .Lproxy0Begin:
     pushl %ebp
@@ -89,6 +91,6 @@ proxy0:
     leave
     ret
 
-// CARL : ASM TODO  .size _proxy0, . - .Lproxy0Begin
+// CARL : ASM DONE  .size _proxy0, . - .Lproxy0Begin
 .Lproxy0End:
 

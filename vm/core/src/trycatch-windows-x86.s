@@ -29,7 +29,7 @@ Env_trycatchContext_offset = 28
 
     .text
 
-    /*  CARL ASM TODO
+    /*  CARL ASM DONE
 
     c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/core/src/trycatch-windows-x86.s: Assembler messages:
 c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/core/src/trycatch-windows-x86.s:38: Warning: .type pseudo-op use
@@ -60,7 +60,10 @@ make[1]: *** [core/src/CMakeFiles/robovm-core.dir/all] Error 2
     .globl rvmTrycatchEnter
     
     .align    16, 0x90
-// CARL : ASM TODO  .type    rvmTrycatchEnter, @function
+// CARL : ASM DONE
+        .def    rvmTrycatchEnter; .scl    2;      .type   32;    
+.endef 
+
 rvmTrycatchEnter:
 .LrvmTrycatchEnterBegin:
     mov   8(%esp), %eax          # %eax = tc
@@ -86,7 +89,8 @@ rvmTrycatchEnter:
 
     ret
 
-// CARL  : ASM TODO  .size rvmTrycatchEnter, . - .LrvmTrycatchEnterBegin
+// CARL  : ASM DONE
+//    .size rvmTrycatchEnter, . - .LrvmTrycatchEnterBegin
 .LrvmTrycatchEnterEnd:
 
 /*
@@ -95,7 +99,11 @@ rvmTrycatchEnter:
     .globl rvmTrycatchJump
     
     .align    16, 0x90
-// CARL  : ASM TODO  .type    rvmTrycatchJump, @function
+// CARL  : ASM DONE
+//.type    rvmTrycatchJump, @function
+        .def    rvmTrycatchJump; .scl    2;      .type   32;    
+.endef 
+
 rvmTrycatchJump:
 .LrvmTrycatchJumpBegin:
     mov   4(%esp), %ecx        # %ecx = tc
@@ -115,5 +123,5 @@ rvmTrycatchJump:
     # Jump to the return address from the initial call to rvmTrycatchEnter
     jmp   *pc_offset(%ecx)
 
-// CARL  : ASM TODO  .size rvmTrycatchJump, . - .LrvmTrycatchJumpBegin
+// CARL  : ASM DONE ? Not ret here ?  .size rvmTrycatchJump, . - .LrvmTrycatchJumpBegin
 .LrvmTrycatchJumpEnd:

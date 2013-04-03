@@ -26,8 +26,24 @@ CallInfo_size         = 28
     .globl _call0
     
     .align    16, 0x90
-// CARL : ASM TODO  .type    call0, @function
-call0:
+
+// CARL asm DONE
+
+/* 
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/call0-windows-x86.s: Assembler messages:
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/call0-windows-x86.s:42: Warning: .type pseudo-op used outside of .def/.endef ignored.
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/call0-windows-x86.s:42: Error: junk at end of line, first unrecognized character is `_'
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/call0-windows-x86.s:65: Warning: .size pseudo-op used outside of .def/.endef ignored.
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/call0-windows-x86.s:65: Error: junk at end of line, first unrecognized character is `_'
+make[2]: *** [core/src/CMakeFiles/robovm-core.dir/call0-windows-x86.s.obj] Error 1
+make[1]: *** [core/src/CMakeFiles/robovm-core.dir/all] Error 2
+make: *** [all] Error 2
+*/
+//.globl _call0
+        .def    _call0; .scl    2;      .type   32;    
+.endef 
+
+_call0:
 .Lcall0Begin:
     push  %ebp
     mov   %esp, %ebp
@@ -49,5 +65,4 @@ call0:
     leave
     ret
 
-// CARL : ASM TODO .size call0, . - .Lcall0Begin
 .Lcall0End:
