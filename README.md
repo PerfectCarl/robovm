@@ -64,7 +64,7 @@ As a rule, everything is tracked through issues :
   6. Build a [setup program] (https://github.com/PerfectCarl/robovm/issues/10)
   7. [Support windows 64 bits] (https://github.com/PerfectCarl/robovm/issues/2)
 
-# Contribute
+# So you know win32 kung fu ?
 For now, there is nothing to run, I'm afraid.  
 But you can have a look at the [issues] (https://github.com/PerfectCarl/robovm/issues) : your feedback is welcomed.
 
