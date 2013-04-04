@@ -2,10 +2,10 @@
 
 This is a windows build for [robovm](http://www.robovm.org) a **native java compiler** (and runtime). 
 
-Main benefits to robovm  :
-  - no java runtime (JRE) needed to execute your app.
-  - your application starts faster.
-  - using native bindings is easier.
+Main benefits of robovm  :
+  - no java runtime (JRE) needed to execute your app
+  - your application starts faster
+  - using native bindings is easier
   - robovm runtime is published [under business friendly licenses] (http://www.robovm.org/license.html).  
 _No_, there is **no GPLed code involved** (in the runtime).   
 _Yes_, you will be able to publish your application to the **mac app store** and the **iphone app store**.
