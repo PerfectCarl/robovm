@@ -241,9 +241,12 @@ static void loadInterfaces(Env* env, Class* clazz) {
 
     for (i = 0; i < ci.interfaceCount; i++) {
         const char* interfaceName = readInterfaceName(&p);
-        Class* interface = rvmFindClassUsingLoader(env, interfaceName, clazz->classLoader);
-        if (!interface) return;
-        rvmAddInterface(env, clazz, interface);
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
+
+        Class* interfaze = rvmFindClassUsingLoader(env, interfaceName, clazz->classLoader);
+        if (!interfaze) return;
+        rvmAddInterface(env, clazz, interfaze);
         if (rvmExceptionCheck(env)) return;
     }
 }
