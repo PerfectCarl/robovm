@@ -24,7 +24,8 @@ Read : the code compiles on windows but doesn't work at the moment.
 
 The build system has been adapted but some code had to be commented out (mostly call to platform C calls : signals, threading, io etc.)
 
-The commented code is marked with `CARL`.
+The commented code is marked with `CARL` and `ifdef/ifndef WINDOWS`.
+.
 
 Pretty much like that :
 ````c
