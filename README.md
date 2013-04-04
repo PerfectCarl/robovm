@@ -12,10 +12,10 @@ _Yes_, you will be able to publish your application to the **Mac App store** and
 
 Robovm actually supports linux, macosx and [ios] (http://www.robovm.org/docs.html#ios-example).
 
-So I thought, **why not windows** ? 
+So I thought, **why not windows** ?   
 Yeah, _why not_
 
-# Uh ?
+# The goal
 This project is a build for windows (32 bits for now, [64 bits is planned] (https://github.com/PerfectCarl/robovm/issues/2)) using [mingw] (http://en.wikipedia.org/wiki/MinGW).
 using gcc and/or clang 3.1.
 
