@@ -88,9 +88,11 @@ public class JDBCPreparedStatement extends JDBCStatement
     }
 
     private String fixup2(String sql) {
-	if (!conn.db.is3()) {
-	    return sql;
-	}
+// CARL java databaseX
+// [ERROR] \Users\Evasion\Dropbox\docs\projects\robovm\robovm-xxx\rt\external\javasqlite\src\main\java\SQLite\JDBC2z\JDBCPreparedStatement.java:[91,13] error: cannot access DatabaseX
+//	if (!conn.db.is3()) {
+//	    return sql;
+//	}
 	StringBuffer sb = new StringBuffer();
 	int parm = -1;
 	for (int i = 0; i < sql.length(); i++) {
@@ -218,7 +220,9 @@ public class JDBCPreparedStatement extends JDBCStatement
 	if (x == null) {
 	    args[parameterIndex - 1] = nullrepl ? "" : null;
 	} else {
-	    if (conn.db.is3()) {
+// CARL java databaseX
+	    //if (conn.db.is3()) {
+	    if (true) {
 		args[parameterIndex - 1] = SQLite.StringEncoder.encodeX(x);
 		blobs[parameterIndex - 1] = true;
 	    } else {
@@ -317,7 +321,9 @@ public class JDBCPreparedStatement extends JDBCStatement
 	} else {
 	    if (x instanceof byte[]) {
 		byte[] bx = (byte[]) x;
-		if (conn.db.is3()) {
+// CARL java databaseX
+		//if (conn.db.is3()) {
+		if (true) {
 		    args[parameterIndex - 1] =
 			  SQLite.StringEncoder.encodeX(bx);
 		    blobs[parameterIndex - 1] = true;
@@ -341,7 +347,9 @@ public class JDBCPreparedStatement extends JDBCStatement
 	} else {
 	    if (x instanceof byte[]) {
 		byte[] bx = (byte[]) x;
-		if (conn.db.is3()) {
+// CARL java databaseX
+		if(true) {
+//		if (conn.db.is3()) {
 		    args[parameterIndex - 1] =
 			SQLite.StringEncoder.encodeX(bx);
 		    blobs[parameterIndex - 1] = true;
@@ -364,7 +372,9 @@ public class JDBCPreparedStatement extends JDBCStatement
 	} else {
 	    if (x instanceof byte[]) {
 		byte[] bx = (byte[]) x;
-		if (conn.db.is3()) {
+// CARL java databaseX
+		if(true) {
+//		if (conn.db.is3()) {
 		    args[parameterIndex - 1] =
 			SQLite.StringEncoder.encodeX(bx);
 		    blobs[parameterIndex - 1] = true;
