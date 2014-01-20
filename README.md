@@ -14,9 +14,7 @@ Robovm actually supports linux, macosx and [ios] (http://www.robovm.org/docs.htm
 
 So I thought, **why not windows** ?   
 
-# The goal
 This project is a build for windows (32 bits for now, [64 bits is planned] (https://github.com/PerfectCarl/robovm/issues/2)) using [mingw] (http://en.wikipedia.org/wiki/MinGW).
-using gcc and/or clang 3.1.
 
 
 # Getting started 
@@ -24,7 +22,27 @@ How to install mingw, get the source and [build everything] (BUILD.md).
 
 If you're in a hurry, you can [download the binaries] (https://github.com/PerfectCarl/robovm/wiki/Download)
 
-# What's up ?
+# What's new
+
+The complete changelog can be [found here] (CHANGELOG.md).
+
+Here are the main changes : 
+   - sync sources with robovm 0.0.8
+   - fixing ASM calls. Now the native testbed passes!
+   - better [build documentation] (BUILD.md)
+
+# TODO
+As a rule, everything is tracked through issues : 
+  - Update the jave compiler to support Windows (https://github.com/PerfectCarl/robovm/issues/16) 
+  - Find [posix equivalents] (https://github.com/PerfectCarl/robovm/issues/4)
+  - Have [Networking] (https://github.com/PerfectCarl/robovm/issues/14)  and [io] (https://github.com/PerfectCarl/robovm/issues/6)
+  - Fix [misc C calls] (https://github.com/PerfectCarl/robovm/issues/7) 
+  - ~~ Review [assembly code] (https://github.com/PerfectCarl/robovm/issues/8)~~ 
+  - ~~ Pass [the test suites] (https://github.com/PerfectCarl/robovm/issues/9)~~ 
+  - Build a [setup program] (https://github.com/PerfectCarl/robovm/issues/10)
+  - [Support windows 64 bits] (https://github.com/PerfectCarl/robovm/issues/2)   
+
+# Approach
 Well, I'm just getting started.   
 Read : the code compiles on windows but doesn't work at the moment. 
 
@@ -56,15 +74,6 @@ Or like this :
 ````
 The goal is to uncomment the code and get a complete user [friendly setup program] (http://www.jrsoftware.org/isinfo.php#features).
 
-# Roadmap
-As a rule, everything is tracked through issues : 
-  1. Find [posix equivalents] (https://github.com/PerfectCarl/robovm/issues/4)
-  2. Have [Networking and io] working (https://github.com/PerfectCarl/robovm/issues/6)
-  3. Fix [misc C calls] (https://github.com/PerfectCarl/robovm/issues/7) 
-  4. Review [assembly code] (https://github.com/PerfectCarl/robovm/issues/8)
-  5. Pass [the test suites] (https://github.com/PerfectCarl/robovm/issues/9)
-  6. Build a [setup program] (https://github.com/PerfectCarl/robovm/issues/10)
-  7. [Support windows 64 bits] (https://github.com/PerfectCarl/robovm/issues/2)
 
 # So you know win32 kung fu ?
 For now, there is nothing to run, I'm afraid.  
