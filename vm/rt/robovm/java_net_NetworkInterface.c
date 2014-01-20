@@ -16,11 +16,16 @@
 #include <robovm.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef WINDOWS
+#include "winsock2.h"
+#else
 #include <sys/socket.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <ifaddrs.h>
+#endif
+
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,7 +34,9 @@
 #   include <net/if_dl.h>
 #   include <sys/sockio.h>
 #else
+#ifndef WINDOWS
 #   include <net/if_arp.h>
+#endif
 #endif
 
 static Class* java_lang_String_array = NULL;
@@ -52,7 +59,8 @@ static jboolean ioctl_ifreq(Env* env, Object* interfaceName, struct ifreq* ifreq
     if (!name) {
         return FALSE;
     }
-
+// CARL TODO network
+#ifndef WINDOWS
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         throwSocketExceptionErrno(env, errno);
@@ -67,7 +75,9 @@ static jboolean ioctl_ifreq(Env* env, Object* interfaceName, struct ifreq* ifreq
         return FALSE;
     }
     close(sock);
-
+#else
+	printf("Networking is not supported on windows. Socket name: %p\n", name);
+#endif
     return TRUE;
 
 }
@@ -78,7 +88,8 @@ static jboolean iterateAddrInfo(Env* env, const char* interfaceName, jboolean (*
         throwSocketExceptionErrno(env, errno);
         return FALSE;
     }
-
+// CARL TODO network
+#ifndef WINDOWS
     for (apit = ap; apit != NULL; apit = apit->ifa_next) {
         if (!interfaceName || !strcmp(apit->ifa_name, interfaceName)) {
             if (!f(env, apit, data)) {
@@ -88,6 +99,9 @@ static jboolean iterateAddrInfo(Env* env, const char* interfaceName, jboolean (*
     }
 
     freeifaddrs(ap);
+#else
+	printf("Networking is not supported on windows. Interface name: %p\n", interfaceName);
+#endif
     return TRUE;
 }
 
@@ -98,7 +112,8 @@ ObjectArray* Java_java_net_NetworkInterface_getInterfaceNames(Env* env, Class* c
             return NULL;
         }
     }
-
+     // CARL TODO network
+#ifndef WINDOWS
     struct if_nameindex* ifs = if_nameindex();
     if (!ifs) {
         // Assume out of memory
@@ -116,7 +131,8 @@ ObjectArray* Java_java_net_NetworkInterface_getInterfaceNames(Env* env, Class* c
     }
 
     jint i = 0;
-    for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++) {
         Object* name = rvmNewStringUTF(env, ifs[i].if_name, -1);
         if (!name) {
             goto done;
@@ -126,7 +142,12 @@ ObjectArray* Java_java_net_NetworkInterface_getInterfaceNames(Env* env, Class* c
 
 done:
     if_freenameindex(ifs);
-    return result;
+	return result;
+#else
+	printf("Networking is not supported on windows.");
+	return NULL;
+#endif
+    
 }
 
 jint Java_java_net_NetworkInterface_getInterfaceIndex(Env* env, Class* cls, Object* interfaceName) {
@@ -138,19 +159,31 @@ jint Java_java_net_NetworkInterface_getInterfaceIndex(Env* env, Class* cls, Obje
 }
 
 jint Java_java_net_NetworkInterface_getFlags(Env* env, Class* cls, Object* interfaceName) {
-    struct ifreq ifreq;
+         // CARL TODO network
+#ifndef WINDOWS
+	struct ifreq ifreq;
     if (!ioctl_ifreq(env, interfaceName, &ifreq, SIOCGIFFLAGS)) {
         return 0;
     }
     return ((jint) ifreq.ifr_flags) & 0xffff;
+#else 
+	printf("Networking is not supported on windows.");
+	return ((jint) 0);
+#endif
 }
 
 jint Java_java_net_NetworkInterface_getMTU(Env* env, Class* cls, Object* interfaceName) {
-    struct ifreq ifreq;
+         // CARL TODO network
+#ifndef WINDOWS    
+	struct ifreq ifreq;
     if (!ioctl_ifreq(env, interfaceName, &ifreq, SIOCGIFMTU)) {
         return 0;
     }
     return ifreq.ifr_mtu;
+#else 
+	printf("Networking is not supported on windows.");
+	return ((jint) 0);
+#endif
 }
 
 #if defined(DARWIN)
@@ -180,6 +213,8 @@ ByteArray* Java_java_net_NetworkInterface_getHardwareAddress(Env* env, Class* cl
     // Darwin doesn't have SIOCGIFHWADDR so we need to use getifaddrs() instead.
     iterateAddrInfo(env, name, getHardwareAddressIterator, &result);
 #else
+	// CARL TODO network
+#ifndef WINDOWS
     struct ifreq ifreq;
     if (!ioctl_ifreq(env, interfaceName, &ifreq, SIOCGIFHWADDR)) {
         return NULL;
@@ -190,6 +225,9 @@ ByteArray* Java_java_net_NetworkInterface_getHardwareAddress(Env* env, Class* cl
             memcpy(result->values, ifreq.ifr_hwaddr.sa_data, 6);
         }
     }
+#else 
+	printf("Networking is not supported on windows.");
+#endif
 #endif
     return result;
 }
@@ -197,17 +235,25 @@ ByteArray* Java_java_net_NetworkInterface_getHardwareAddress(Env* env, Class* cl
 
 static jboolean countIpv6AddressesIterator(Env* env, struct ifaddrs *ia, void* data) {
     jint* count = (jint*) data;
-    if (ia->ifa_addr && ia->ifa_addr->sa_family == AF_INET6) {
+    // CARL TODO network
+#ifndef WINDOWS
+	if (ia->ifa_addr && ia->ifa_addr->sa_family == AF_INET6) {
         (*count)++;
     }
-    return TRUE;
+#else
+	printf("Networking is not supported on windows.");
+#endif
+	return TRUE;
 }
 typedef struct {
     ByteArray* result;
     jint index;
 } GetIpv6AddressesData;
 static jboolean getIpv6AddressesIterator(Env* env, struct ifaddrs *ia, void* _data) {
-    GetIpv6AddressesData* data = (GetIpv6AddressesData*) _data;
+    // CARL TODO network
+#ifndef WINDOWS
+
+	GetIpv6AddressesData* data = (GetIpv6AddressesData*) _data;
     if (ia->ifa_addr && ia->ifa_addr->sa_family == AF_INET6) {
         struct sockaddr_in6* addr = (struct sockaddr_in6*) ia->ifa_addr;
         struct sockaddr_in6* netmask = (struct sockaddr_in6*) ia->ifa_netmask;
@@ -217,6 +263,10 @@ static jboolean getIpv6AddressesIterator(Env* env, struct ifaddrs *ia, void* _da
         }
         data->index++;
     }
+#else
+	printf("Networking is not supported on windows.");
+#endif
+
     return TRUE; // Continue iteration
 }
 ByteArray* Java_java_net_NetworkInterface_getIpv6Addresses(Env* env, Class* cls, Object* interfaceName) {
