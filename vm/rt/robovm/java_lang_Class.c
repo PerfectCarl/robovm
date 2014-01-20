@@ -130,7 +130,7 @@ ObjectArray* Java_java_lang_Class_getInterfaces(Env* env, Class* thiz) {
     if (!result) return NULL;
     jint i = 0;
     LL_FOREACH(interfaces, interfaze) {
-        result->values[i++] = (Object*) interfaze->interfaze;
+        result->values[i++] = (Object*) interfaze->interfaceClass;
     }
     return result;
 }
