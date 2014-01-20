@@ -203,7 +203,7 @@ static jboolean addProxyMethods(Env* env, Class* proxyClass, Class* clazz, Proxy
 static jboolean implementAbstractInterfaceMethods(Env* env, Class* proxyClass, Interface* interfaze, ProxyClassData* proxyClassData) {
     if (!interfaze) return TRUE;
 
-    Method* method = rvmGetMethods(env, interfaze->interfaze);
+    Method* method = rvmGetMethods(env, interfaze->interfaceClass);
     if (rvmExceptionOccurred(env)) return FALSE;
     for (; method != NULL; method = method->next) {
         if (!METHOD_IS_CLASS_INITIALIZER(method)) {
@@ -213,7 +213,7 @@ static jboolean implementAbstractInterfaceMethods(Env* env, Class* proxyClass, I
     }
 
     // Interfaces are implemented depth-first so call recursively with the super interfaces of the current interface first
-    Interface* interfaceInterfaces = rvmGetInterfaces(env, interfaze->interfaze);
+    Interface* interfaceInterfaces = rvmGetInterfaces(env, interfaze->interfaceClass);
     if (rvmExceptionCheck(env)) return FALSE;
     if (!implementAbstractInterfaceMethods(env, proxyClass, interfaceInterfaces, proxyClassData)) return FALSE;
     // Now proceed with the next interface
@@ -301,7 +301,7 @@ static uint32_t countInterfacesForITables(Env* env, Class* c) {
     if (rvmExceptionOccurred(env)) return 0;
     uint32_t count = c->vitable->size;
     for (; ifs; ifs = ifs->next) {
-        count += countInterfacesForITables(env, ifs->interface);
+        count += countInterfacesForITables(env, ifs->interfaceClass);
         if (rvmExceptionOccurred(env)) return 0;
     }
     return count;
@@ -317,7 +317,7 @@ static void initITableArray(Env* env, Class* c, jint* index, ITable** array) {
     Interface* ifs = rvmGetInterfaces(env, c);
     if (rvmExceptionOccurred(env)) return;
     for (; ifs; ifs = ifs->next) {
-        initITableArray(env, ifs->interface, index, array);
+        initITableArray(env, ifs->interfaceClass, index, array);
         if (rvmExceptionOccurred(env)) return;
     }
 }
