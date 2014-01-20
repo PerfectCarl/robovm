@@ -18,10 +18,10 @@ This project is a build for windows (32 bits for now, [64 bits is planned] (http
 
 # Status: **early alpha**
 
-Code: robovm 0.0.8
-C libraries: compiling
-Java compiler: does not support windows
-Hello world program: **not working** 
+- Code: robovm 0.0.8
+- C libraries: compiling
+- Java compiler: does not support windows
+- Hello world program: **not working** 
 
 # Getting started 
 How to install mingw, get the source and [build everything] (BUILD.md).
