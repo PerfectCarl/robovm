@@ -23,7 +23,7 @@
 
 // CARL : network
 #ifdef WINDOWS
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <arpa/inet.h>
 #endif

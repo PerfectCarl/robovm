@@ -145,9 +145,16 @@
 #ifndef OPENSSL_NO_COMP
 #include <openssl/comp.h>
 #endif
+// CARL To fix the  #error "ws2tcpip.h is not compatible with winsock.h. Include winsock2.h instead."
+// See more http://www.wagner.pp.ru/~vitus/articles/openssl-mingw.html
+#ifdef WINDOWS
+#include "e_os.h"
+#endif
+
 #ifndef OPENSSL_NO_ENGINE
 #include <openssl/engine.h>
 #endif
+
 #include "ssl_locl.h"
 
 #define SSL_ENC_DES_IDX		0

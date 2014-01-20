@@ -25,6 +25,10 @@ http://www.cmake.org/files/v2.8/cmake-2.8.12.1-win32-x86.exe
 robovm is not compatible with maven 3.1+, so be sure to install maven 3.0x
 http://maven.apache.org/docs/3.0.5/release-notes.html
 
+SET M2_HOME=%MAVEN_PATH%
+
+SET JAVA_HOME=C:\Program Files\Java\jdk1.7
+
 ## Generate the make files 
 
 Source code : <proj_path>/vm

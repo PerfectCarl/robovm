@@ -24,8 +24,8 @@
 
 // CARL : network
 #ifdef WINDOWS
-#include <winsock.h>
-#include <ws2tcpip.h>
+#include <winsock2.h>
+// #include <ws2tcpip.h>
 #else
  // RoboVM note: On Darwin sys/socket.h must be included before net/if.h to prevent compilation errors
 #include <sys/socket.h>

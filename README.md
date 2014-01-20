@@ -18,6 +18,12 @@ So I thought, **why not windows** ?
 This project is a build for windows (32 bits for now, [64 bits is planned] (https://github.com/PerfectCarl/robovm/issues/2)) using [mingw] (http://en.wikipedia.org/wiki/MinGW).
 using gcc and/or clang 3.1.
 
+
+# Getting started 
+How to install mingw, get the source and [build everything] (BUILD.md).
+
+If you're in a hurry, you can [download the binaries] (https://github.com/PerfectCarl/robovm/wiki/Download)
+
 # What's up ?
 Well, I'm just getting started.   
 Read : the code compiles on windows but doesn't work at the moment. 
@@ -49,11 +55,6 @@ Or like this :
 #endif 
 ````
 The goal is to uncomment the code and get a complete user [friendly setup program] (http://www.jrsoftware.org/isinfo.php#features).
-
-# Getting started 
-How to install mingw, get the source and [build everything] (https://github.com/PerfectCarl/robovm/wiki/Getting-started).
-
-If you're in a hurry, you can [download the binaries] (https://github.com/PerfectCarl/robovm/wiki/Download)
 
 # Roadmap
 As a rule, everything is tracked through issues : 
