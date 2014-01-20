@@ -113,6 +113,11 @@ Cleanly installed Solaris can use this #define.
 #   endif
 #endif
 
+// CARL : icu4j. Submit the patch to author ?
+#if defined(U_MINGW) && !defined(PATH_MAX)
+#include <limits.h>
+#endif 
+
 #if (defined(U_CYGWIN) || defined(U_MINGW)) && defined(__STRICT_ANSI__)
 /* tzset isn't defined in strict ANSI on Cygwin and MinGW. */
 #undef __STRICT_ANSI__

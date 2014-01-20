@@ -3,6 +3,7 @@
 SELF=$(basename $0)
 BASE=$(cd $(dirname $0); pwd -P)
 CLEAN=0
+echo BASE : $BASE
 
 function usage {
   cat <<EOF
@@ -50,6 +51,10 @@ if [ "x$TARGETS" = 'x' ]; then
   Linux)
     TARGETS="linux-x86"
     ;;
+  #win32 : add target
+  "MINGW32_NT-6.1")
+    TARGETS="windows-x86"
+    ;;
   *)
     echo "Unsupported OS: $OS"
     exit 1
@@ -61,20 +66,20 @@ if [ "x$BUILDS" = 'x' ]; then
 fi
 
 # Validate targets
-for T in $TARGETS; do
-  if ! [[ $T =~ (macosx|ios|linux)-(x86|thumbv7) ]] ; then
-    echo "Unsupported target: $T"
-    exit 1
-  fi
-done
+# for t in $targets; do
+#   if ! [[ $t =~ (macosx|ios|linux|windows)-(x86|thumbv7) ]] ; then
+#     echo "unsupported target: $t"
+#     exit 1
+#   fi
+# done
 
 # Validate build types
-for B in $BUILDS; do
-  if ! [[ $B =~ (debug|release) ]] ; then
-    echo "Unsupported build type: $B"
-    exit 1
-  fi
-done
+# for B in $BUILDS; do
+#  if ! [[ $B =~ (debug|release) ]] ; then
+#    echo "Unsupported build type: $B"
+#    exit 1
+#  fi
+# done
 
 mkdir -p "$BASE/target/build"
 if [ "$CLEAN" = '1' ]; then
@@ -101,11 +106,17 @@ else
   CXX=$(which g++)
 fi
 
+
 for T in $TARGETS; do
   OS=${T%%-*}
   ARCH=${T#*-}
+  echo OS : $OS
+  echo ARCH : $ARCH
   for B in $BUILDS; do
     BUILD_TYPE=$B
+    echo BUILD_TYPE : $BUILD_TYPE
+    echo T : $T
+    echo B : $B
     mkdir -p "$BASE/target/build/$T-$B"
     rm -rf "$BASE/binaries/$OS/$ARCH/$B"
     bash -c "cd '$BASE/target/build/$T-$B'; cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOS=$OS -DARCH=$ARCH '$BASE'; make install"

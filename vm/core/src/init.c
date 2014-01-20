@@ -17,7 +17,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#ifndef WINDOWS
 #include <dlfcn.h>
+#endif
 #include <signal.h>
 #if defined(IOS) && (defined(RVM_ARMV7) || defined(RVM_THUMBV7))
 #   include <fenv.h>
@@ -320,8 +322,13 @@ void rvmAbort(char* format, ...) {
 DynamicLib* rvmOpenDynamicLib(Env* env, const char* file, char** errorMsg) {
     *errorMsg = NULL;
     DynamicLib* dlib = NULL;
+// TODO CARL dll
+#ifdef WINDOWS
+    void* handle = NULL ; 
+#else
+	void* handle = dlopen(file, RTLD_LOCAL | RTLD_LAZY);
+#endif
 
-    void* handle = dlopen(file, RTLD_LOCAL | RTLD_LAZY);
     if (!handle) {
         *errorMsg = dlerror();
         TRACEF("Failed to load dynamic library '%s': %s", file, *errorMsg);

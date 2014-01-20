@@ -198,10 +198,12 @@ static jboolean addProxyMethods(Env* env, Class* proxyClass, Class* clazz, Proxy
  * {@link #addProxyMethods()} which will override all methods defined by the proxy's
  * ancestor classes (abstract or concrete).
  */
-static jboolean implementAbstractInterfaceMethods(Env* env, Class* proxyClass, Interface* interface, ProxyClassData* proxyClassData) {
-    if (!interface) return TRUE;
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
+static jboolean implementAbstractInterfaceMethods(Env* env, Class* proxyClass, Interface* interfaze, ProxyClassData* proxyClassData) {
+    if (!interfaze) return TRUE;
 
-    Method* method = rvmGetMethods(env, interface->interface);
+    Method* method = rvmGetMethods(env, interfaze->interfaze);
     if (rvmExceptionOccurred(env)) return FALSE;
     for (; method != NULL; method = method->next) {
         if (!METHOD_IS_CLASS_INITIALIZER(method)) {
@@ -211,11 +213,11 @@ static jboolean implementAbstractInterfaceMethods(Env* env, Class* proxyClass, I
     }
 
     // Interfaces are implemented depth-first so call recursively with the super interfaces of the current interface first
-    Interface* interfaceInterfaces = rvmGetInterfaces(env, interface->interface);
+    Interface* interfaceInterfaces = rvmGetInterfaces(env, interfaze->interfaze);
     if (rvmExceptionCheck(env)) return FALSE;
     if (!implementAbstractInterfaceMethods(env, proxyClass, interfaceInterfaces, proxyClassData)) return FALSE;
     // Now proceed with the next interface
-    if (!implementAbstractInterfaceMethods(env, proxyClass, interface->next, proxyClassData)) return FALSE;
+    if (!implementAbstractInterfaceMethods(env, proxyClass, interfaze->next, proxyClassData)) return FALSE;
 
     return TRUE;
 }
@@ -374,9 +376,12 @@ Class* rvmProxyCreateProxyClass(Env* env, Class* superclass, ClassLoader* classL
 
     Class* c = proxyClass;
     while (c) {
-        Interface* interface = rvmGetInterfaces(env, c);
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
+
+        Interface* interfaze = rvmGetInterfaces(env, c);
         if (rvmExceptionCheck(env)) return NULL;
-        if (!implementAbstractInterfaceMethods(env, proxyClass, interface, proxyClassData)) return NULL;
+        if (!implementAbstractInterfaceMethods(env, proxyClass, interfaze, proxyClassData)) return NULL;
         c = c->superclass;
     }
 

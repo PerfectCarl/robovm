@@ -16,7 +16,13 @@
 
 #define LOG_TAG "ProcessManager"
 
+// CARL posix process
+#ifndef WINDOWS
 #include <sys/resource.h>
+#else
+
+#endif
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -33,7 +39,9 @@
 /** Close all open fds > 2 (i.e. everything but stdin/out/err), != skipFd. */
 static void closeNonStandardFds(int skipFd1, int skipFd2) {
     // TODO: rather than close all these non-open files, we could look in /proc/self/fd.
-    rlimit rlimit;
+// CARL posix process
+#ifndef WINDOWS
+	rlimit rlimit;
     getrlimit(RLIMIT_NOFILE, &rlimit);
     const int max_fd = rlimit.rlim_max;
     for (int fd = 3; fd < max_fd; ++fd) {
@@ -41,13 +49,16 @@ static void closeNonStandardFds(int skipFd1, int skipFd2) {
             close(fd);
         }
     }
+#endif
 }
 
 #define PIPE_COUNT (4) // number of pipes used to communicate with child proc
 
 /** Closes all pipes in the given array. */
 static void closePipes(int pipes[], int skipFd) {
-    for (int i = 0; i < PIPE_COUNT * 2; i++) {
+// CARL posix process
+#ifndef WINDOWS
+	for (int i = 0; i < PIPE_COUNT * 2; i++) {
         int fd = pipes[i];
         if (fd == -1) {
             return;
@@ -56,6 +67,7 @@ static void closePipes(int pipes[], int skipFd) {
             close(pipes[i]);
         }
     }
+#endif
 }
 
 /** Executes a command in a child process. */
@@ -63,7 +75,10 @@ static pid_t executeProcess(JNIEnv* env, char** commands, char** environment,
         const char* workingDirectory, jobject inDescriptor,
         jobject outDescriptor, jobject errDescriptor,
         jboolean redirectErrorStream) {
-
+// CARL posix process
+#ifdef WINDOWS
+	return -1 ;
+#else
     // Keep track of the system properties fd so we don't close it.
     int androidSystemPropertiesFd = -1;
     char* fdString = getenv("ANDROID_PROPERTY_WORKSPACE");
@@ -180,6 +195,7 @@ static pid_t executeProcess(JNIEnv* env, char** commands, char** environment,
     jniSetFileDescriptorOfFD(env, errDescriptor, stderrIn);
 
     return childPid;
+#endif
 }
 
 /** Converts a Java String[] to a 0-terminated char**. */

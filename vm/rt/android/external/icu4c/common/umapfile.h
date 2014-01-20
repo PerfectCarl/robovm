@@ -51,4 +51,9 @@ U_CFUNC void  uprv_unmapFile(UDataMemory *pData);
 #   define MAP_IMPLEMENTATION MAP_STDIO
 #endif
 
+// CARL : icu4j mmap. Submit the patch to author ?
+#if defined(U_MINGW) 
+#define MAP_IMPLEMENTATION MAP_WIN32
+#endif
+
 #endif

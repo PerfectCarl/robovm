@@ -17,7 +17,8 @@ set(SRC
   proxy.c 
   string.c 
   thread.c 
-  signal.c 
+# CARL *new file* posix Signal : signal.c is now platform specific (or only windows specific ? cf *posix.cpp)
+  signal-${OS_FAMILY}-${ARCH}.c 
   call0-${OS_FAMILY}-${ARCH}.s
   proxy0-${OS_FAMILY}-${ARCH}.s
   trycatch-${OS_FAMILY}-${ARCH}.s

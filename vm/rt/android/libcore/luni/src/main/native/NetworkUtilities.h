@@ -15,8 +15,12 @@
  */
 
 #include "jni.h"
+#ifdef WINDOWS
+// CARL : network
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
-
+#endif
 // Convert from sockaddr_storage to InetAddress and an optional int port.
 jobject sockaddrToInetAddress(JNIEnv* env, const sockaddr_storage* ss, int* port);
 

@@ -1,5 +1,6 @@
 *~
 *.o
+*.obj
 a.out
 *.class
 .*
@@ -25,3 +26,5 @@ a.out
 /tests/libcore/sqliteTest*.db
 /eclipse/ui/lib/
 /tmp/
+/CMakeFiles/
+/*dir/

@@ -37,6 +37,10 @@
 #   define isnanf(X) isnan(X)
 #endif
 
+// RoboVM note: isnanf is not available on Windows
+#if defined(WINDOWS)
+#   define isnanf(X) isnan(X)
+#endif
 /*
  * ===========================================================================
  *      java.lang.Math
@@ -116,7 +120,7 @@ extern "C" jint Java_java_lang_Float_floatToIntBits(JNIEnv*, jclass, float value
 {
     Convert32 convert;
     convert.ff = value;
-    return isnanf(convert.ff) ? 0x7fc00000 : convert.arg;
+	return isnanf(convert.ff) ? 0x7fc00000 : convert.arg;
 }
 
 extern "C" jint Java_java_lang_Float_floatToRawIntBits(JNIEnv*, jclass, float value)

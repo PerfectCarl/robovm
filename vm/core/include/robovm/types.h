@@ -116,9 +116,11 @@ struct ProxyMethodException {
   Class* clazz;
 };
 
+// CARL DONE interfaze misc c name collision
+// https://gist.github.com/PerfectCarl/5209348
 struct Interface {
   Interface* next;
-  Class* interface;
+  Class* interfaze;
 };
 
 struct Object {

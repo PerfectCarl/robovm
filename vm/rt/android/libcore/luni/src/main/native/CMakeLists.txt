@@ -47,7 +47,6 @@ set(SRC
   libcore_io_AsynchronousCloseMonitor.cpp
   libcore_io_Memory.cpp
   libcore_io_OsConstants.cpp
-  libcore_io_Posix.cpp
   org_apache_harmony_xml_ExpatParser.cpp
   org_apache_harmony_xnet_provider_jsse_NativeCrypto.cpp
   readlink.cpp
@@ -59,6 +58,19 @@ if(LINUX)
   set(SRC
     ${SRC}
     libcore_net_RawSocket.cpp
+  )
+endif()
+
+#CARL *new file* posix
+if(WINDOWS)
+  set(SRC
+    ${SRC}
+      libcore_io_Posix-windows.cpp
+  )
+else()
+  set(SRC
+    ${SRC}
+      libcore_io_Posix.cpp
   )
 endif()
 

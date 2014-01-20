@@ -29,12 +29,23 @@
 #   define bswap_32(x) OSSwapInt32(x)
 #   define bswap_64(x) OSSwapInt64(x)
 #else
+// CARL mem 
+#ifdef WINDOWS
+#   define bswap_16(x) x
+#   define bswap_32(x) x
+#   define bswap_64(x) x
+#else
 #   include <byteswap.h>
+#endif // ifdef WINDOWS
 #endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
+// CARL mman 
+#ifndef WINDOWS
 #include <sys/mman.h>
+#endif // ifdef WINDOWS
 
 #if defined(__arm__)
 // 32-bit ARM has load/store alignment restrictions for longs.

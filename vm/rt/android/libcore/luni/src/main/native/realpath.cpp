@@ -89,6 +89,8 @@ bool realpath(const char* path, std::string& resolved) {
 
         // See if we've got a symbolic link, and resolve it if so.
         struct stat sb;
+// CARL misc C
+#ifndef WINDOWS
         if (lstat(resolved.c_str(), &sb) == 0 && S_ISLNK(sb.st_mode)) {
             if (symlinkCount++ > MAXSYMLINKS) {
                 errno = ELOOP;
@@ -115,6 +117,7 @@ bool realpath(const char* path, std::string& resolved) {
                 left = symlink;
             }
         }
+#endif
     }
 
     // Remove trailing slash except when the resolved pathname is a single "/".

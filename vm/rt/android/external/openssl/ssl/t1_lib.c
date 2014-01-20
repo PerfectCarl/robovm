@@ -114,6 +114,11 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/ocsp.h>
+// CARL To fix the  #error "ws2tcpip.h is not compatible with winsock.h. Include winsock2.h instead."
+// See more http://www.wagner.pp.ru/~vitus/articles/openssl-mingw.html
+#ifdef WINDOWS
+#include "e_os.h"
+#endif
 #include <openssl/rand.h>
 #include "ssl_locl.h"
 

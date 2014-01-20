@@ -21,7 +21,7 @@ endif()
 if(NOT OS)
   message(FATAL_ERROR "OS not set")
 endif()
-if(NOT OS MATCHES "^(linux|macosx|ios)$")
+if(NOT OS MATCHES "^(linux|macosx|ios|windows)$")
   message(FATAL_ERROR "Unsupported OS: ${OS}")
 endif()
 
@@ -36,6 +36,28 @@ elseif(OS STREQUAL "ios")
   set(IOS YES)
   set(DARWIN YES)
   set(OS_FAMILY darwin)
+elseif(OS STREQUAL "windows")
+  set(OS_FAMILY windows)
+  set(CMAKE_CROSSCOMPILING NO)
+  set(WINDOWS YES)
+  # uc4c gettext
+  add_definitions(-DU_MINGW)
+  # STL + Clang
+  #   include_directories(
+  # 	 c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include
+  # 	 C:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include/c++
+  #   )
+  # STL error
+  # In file included from c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm-xxx/vm/core/src/method.c:18:
+  # c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include\unwind.h:43:46: error: unknown machine mode '__unwind_word__'typedef unsigned _Unwind_Word __attribute__((__mode__(__unwind_word__)));
+  #                                              ^
+  # c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include\unwind.h:44:45: error: unknown machine mode '__unwind_word__'typedef signed _Unwind_Sword __attribute__((__mode__(__unwind_word__)));
+  #                                             ^
+  # 2 errors generated.
+  # make[2]: *** [core/src/CMakeFiles/robovm-core.dir/method.c.obj] Error 1
+  # make[1]: *** [core/src/CMakeFiles/robovm-core.dir/all] Error 2
+  # make: *** [all] Error 2
+
 endif()
 
 if (ARCH STREQUAL "x86")
@@ -162,6 +184,9 @@ elseif(DARWIN)
     add_definitions(-DIOS)
   endif()
   add_definitions(-DDARWIN)
+elseif(WINDOWS)
+    add_definitions(-DWINDOWS)
+    add_definitions(-DWIN32)
 endif()
 
 if (ARCH STREQUAL "x86")
@@ -181,11 +206,22 @@ if (CMAKE_BUILD_TYPE STREQUAL "debug")
   set(LIB_SUFFIX "-dbg.a")
 endif()
 
+
+if(WINDOWS)
+  set(EXT_HOST --enable-targets=host-only)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
+endif()
+
 set(INSTALL_DIR ${CMAKE_SOURCE_DIR}/target/binaries/${OS}/${ARCH})
 
 message(STATUS "ARCH: ${ARCH}")
 message(STATUS "OS: ${OS}")
 message(STATUS "SYSROOT: ${SYSROOT}")
+message(STATUS "U_WINDOWS: ${U_WINDOWS}")
+message(STATUS "U_MINGW: ${U_MINGW}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
 message(STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")

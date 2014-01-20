@@ -22,7 +22,13 @@
 
 #include <algorithm>
 #include <fcntl.h>
+// CARL : network
+#ifdef WINDOWS
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
+#endif
+
 #include <unistd.h>
 
 #include <jni.h>
@@ -306,6 +312,8 @@ static void throwSSLExceptionWithSslErrors(
 
     // Prepend either our explicit message or a default one.
     char* str;
+// CARL : asprintf
+#ifndef WINDOWS
     if (asprintf(&str, "%s: ssl=%p: %s", message, ssl, sslErrorStr) <= 0) {
         // problem with asprintf, just throw argument message, log everything
         throwSSLExceptionStr(env, message);
@@ -313,9 +321,11 @@ static void throwSSLExceptionWithSslErrors(
         freeOpenSslErrorState();
         return;
     }
+#endif
 
     char* allocStr = str;
-
+// CARL : asprintf
+#ifndef WINDOWS
     // For protocol errors, SSL might have more information.
     if (sslErrorCode == SSL_ERROR_NONE || sslErrorCode == SSL_ERROR_SSL) {
         // Append each error as an additional line to the message.
@@ -348,6 +358,7 @@ static void throwSSLExceptionWithSslErrors(
             allocStr = str;
         }
     // For errors during system calls, errno might be our friend.
+
     } else if (sslErrorCode == SSL_ERROR_SYSCALL) {
         if (asprintf(&str, "%s, %s", allocStr, strerror(errno)) >= 0) {
             free(allocStr);
@@ -366,7 +377,7 @@ static void throwSSLExceptionWithSslErrors(
     } else {
         throwSSLExceptionStr(env, allocStr);
     }
-
+#endif
     ALOGV("%s", allocStr);
     free(allocStr);
     freeOpenSslErrorState();
@@ -501,8 +512,14 @@ static void locking_function(int mode, int n, const char*, int) {
     }
 }
 
+
 static unsigned long id_function(void) {
-    return ((unsigned long)THREAD_ID);
+// CARL posix pthread 
+ #ifdef WINDOWS
+	return 0;
+ #else
+	return ((unsigned long)THREAD_ID);
+ #endif
 }
 
 int THREAD_setup(void) {
@@ -2069,9 +2086,12 @@ class AppData {
   public:
     static AppData* create() {
         UniquePtr<AppData> appData(new AppData());
-        if (pipe(appData.get()->fdsEmergency) == -1) {
+// CARL posix pipe
+ #ifndef WINDOWS
+		if (pipe(appData.get()->fdsEmergency) == -1) {
             return NULL;
         }
+#endif
         if (!setBlocking(appData.get()->fdsEmergency[0], false)) {
             return NULL;
         }

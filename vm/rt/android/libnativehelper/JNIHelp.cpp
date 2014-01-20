@@ -121,13 +121,33 @@ static char* getExceptionSummary0(C_JNIEnv* env, jthrowable exception) {
 
     char* result = NULL;
     const char* messageChars = (*env)->GetStringUTFChars(e, messageStr.get(), NULL);
-    if (messageChars != NULL) {
-        asprintf(&result, "%s: %s", classNameChars, messageChars);
+   
+// CARL : asprintf 	
+
+/* 
+
+[  6%] Building CXX object rt/android/libnativehelper/CMakeFiles/android-libnativehelper.dir/JNIHelp.cpp.obj
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp: In function 'char* getExceptionSummary0(const JNINativeInterface**, jthrowable)':
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp:128:65: error: 'asprintf' was not declared in this scope
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp:132:72: error: 'asprintf' was not declared in this scope
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp: In function 'const char* jniStrError(int, char*, size_t)':
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp:292:55: error: 'strerror_r' was not declared in this scope
+make[2]: *** [rt/android/libnativehelper/CMakeFiles/android-libnativehelper.dir/JNIHelp.cpp.obj] Error 1
+make[1]: *** [rt/android/libnativehelper/CMakeFiles/android-libnativehelper.dir/all] Error 2
+make: *** [all] Error 2
+
+*/
+	if (messageChars != NULL) {
+#ifndef WINDOWS 
+		asprintf(&result, "%s: %s", classNameChars, messageChars);
+#endif
         (*env)->ReleaseStringUTFChars(e, messageStr.get(), messageChars);
     } else {
         (*env)->ExceptionClear(e); // clear OOM
-        asprintf(&result, "%s: <error getting message>", classNameChars);
-    }
+#ifndef WINDOWS 
+		asprintf(&result, "%s: <error getting message>", classNameChars);
+#endif
+	}
 
     (*env)->ReleaseStringUTFChars(e, classNameStr.get(), classNameChars);
     return result;
@@ -286,8 +306,21 @@ void jniLogException(C_JNIEnv* env, int priority, const char* tag, jthrowable ex
 const char* jniStrError(int errnum, char* buf, size_t buflen) {
     // Note: glibc has a nonstandard strerror_r that returns char* rather than POSIX's int.
     // char *strerror_r(int errnum, char *buf, size_t n);
-    char* ret = (char*) strerror_r(errnum, buf, buflen);
-    if (((int)ret) == 0) {
+ 
+// CARL : strerror
+/*
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp: In function 'const char* jniStrError(int, char*, size_t)':
+c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libnativehelper/JNIHelp.cpp:309:55: error: 'strerror_r' was not declared in this scope
+make[2]: *** [rt/android/libnativehelper/CMakeFiles/android-libnativehelper.dir/JNIHelp.cpp.obj] Error 1
+make[1]: *** [rt/android/libnativehelper/CMakeFiles/android-libnativehelper.dir/all] Error 2
+make: *** [all] Error 2
+*/
+#ifdef WINDOWS
+	char* ret = NULL ;
+#else
+	char* ret = (char*) strerror_r(errnum, buf, buflen);
+#endif
+	if (((int)ret) == 0) {
         // POSIX strerror_r, success
         return buf;
     } else if (((int)ret) == -1) {
