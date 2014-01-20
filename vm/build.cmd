@@ -12,7 +12,6 @@ echo -----------------------------------------------------
 echo    Building for %OS%, %ARCH%, %BUILD_TYPE% ...
 echo -----------------------------------------------------
 echo.    
-
 echo Output %BASE%\target\binaries\%OS%\%ARCH%
 
 SET MSYS_PATH=%MINGW_PATH%\msys\1.0\bin

@@ -8,7 +8,9 @@ echo ---------------------------------
 echo    Building java...
 echo ---------------------------------
 echo.
+echo Output : compiler/target 
+echo.
 
-call mvn -q  install -DskipTests  -Dmaven.javadoc.skip=true
+call mvn -q install -DskipTests
 
 rem pause
