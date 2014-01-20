@@ -23,7 +23,7 @@ CallInfo_size         = 28
 
     .text
 
-    .globl _call0
+    //.globl _call0
     
     .align    16, 0x90
 
@@ -39,11 +39,11 @@ make[2]: *** [core/src/CMakeFiles/robovm-core.dir/call0-windows-x86.s.obj] Error
 make[1]: *** [core/src/CMakeFiles/robovm-core.dir/all] Error 2
 make: *** [all] Error 2
 */
-//.globl _call0
-        .def    _call0; .scl    2;      .type   32;    
+.globl __call0
+        .def    __call0; .scl    2;      .type   32;    
 .endef 
 
-_call0:
+__call0:
 .Lcall0Begin:
     push  %ebp
     mov   %esp, %ebp

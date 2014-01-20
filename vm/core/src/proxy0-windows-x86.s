@@ -48,13 +48,13 @@ make[2]: *** [core/src/CMakeFiles/robovm-core.dir/proxy0-windows-x86.s.obj] Erro
 
     .text
 
-    .globl _proxy0
+    .globl __proxy0
 // CARL asm DONE
     .align    16, 0x90
-        .def    _proxy0; .scl    2;      .type   32;    
+        .def    __proxy0; .scl    2;      .type   32;    
 .endef 
 
-proxy0:
+__proxy0:
 .Lproxy0Begin:
     pushl %ebp
     mov   %esp, %ebp
@@ -69,7 +69,7 @@ proxy0:
     # Call _rvmProxyHandler with the CallInfo as first argument
     lea   CallInfo_offset(%esp), %eax
     movl  %eax, (%esp)
-    call  _rvmProxyHandler
+    call  __rvmProxyHandler
 
     # For simplicity we always copy returnValue to eax and 
     # returnValue>>32 to edx even if float or double is returned.
