@@ -120,7 +120,7 @@ struct ProxyMethodException {
 // https://gist.github.com/PerfectCarl/5209348
 struct Interface {
   Interface* next;
-  Class* interfaze;
+  Class* interfaceClass;
 };
 
 struct Object {

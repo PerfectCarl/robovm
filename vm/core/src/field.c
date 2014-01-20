@@ -30,7 +30,7 @@ static Field* getField(Env* env, Class* clazz, char* name, char* desc) {
     Interface* interfaze = rvmGetInterfaces(env, clazz);
     if (rvmExceptionCheck(env)) return NULL;
     for (; interfaze != NULL; interfaze = interfaze->next) {
-        field = getField(env, interfaze->interfaze, name, desc);
+        field = getField(env, interfaze->interfaceClass, name, desc);
         if (rvmExceptionCheck(env)) return NULL;
         if (field) return field;
     }

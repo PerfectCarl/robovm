@@ -191,7 +191,8 @@ Env* rvmStartup(Options* options) {
 
     TRACE("Initializing GC");
     if (!initGC(options)) return NULL;
-
+// TODO CARL: posix pipe & signal review this
+#ifndef WINDOWS
     // Ignore SIGPIPE signals. SIGPIPE interrupts write() calls which we don't
     // want. Dalvik does this too in dalvikvm/Main.cpp.
     if (!ignoreSignal(SIGPIPE)) return NULL;
@@ -199,7 +200,7 @@ Env* rvmStartup(Options* options) {
     // Ignore SIGXFSZ signals. SIGXFSZ is raised when writing beyond the RLIMIT_FSIZE
     // of the current process (at least on Darwin) using pwrite().
     if (!ignoreSignal(SIGXFSZ)) return NULL;
-
+#endif
     VM* vm = rvmCreateVM(options);
     if (!vm) return NULL;
 
