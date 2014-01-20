@@ -27,7 +27,7 @@ If you're in a hurry, you can [download the binaries] (https://github.com/Perfec
 The complete changelog can be [found here] (CHANGELOG.md).
 
 Here are the main changes : 
-   - sync sources with robovm 0.0.8
+   - sync sources with [robovm 0.0.8] (https://github.com/PerfectCarl/robovm/tree/v08)
    - fixing ASM calls. Now the native testbed passes!
    - better [build documentation] (BUILD.md)
 
@@ -37,8 +37,8 @@ As a rule, everything is tracked through issues :
   - Find [posix equivalents] (https://github.com/PerfectCarl/robovm/issues/4)
   - Have [Networking] (https://github.com/PerfectCarl/robovm/issues/14)  and [io] (https://github.com/PerfectCarl/robovm/issues/6)
   - Fix [misc C calls] (https://github.com/PerfectCarl/robovm/issues/7) 
-  - ~~ Review [assembly code] (https://github.com/PerfectCarl/robovm/issues/8)~~ 
-  - ~~ Pass [the test suites] (https://github.com/PerfectCarl/robovm/issues/9)~~ 
+  - ~~Review [assembly code] (https://github.com/PerfectCarl/robovm/issues/8)~~ 
+  - ~~Pass [the test suites] (https://github.com/PerfectCarl/robovm/issues/9)~~ 
   - Build a [setup program] (https://github.com/PerfectCarl/robovm/issues/10)
   - [Support windows 64 bits] (https://github.com/PerfectCarl/robovm/issues/2)   
 
