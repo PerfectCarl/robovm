@@ -16,6 +16,12 @@ So I thought, **why not windows** ?
 
 This project is a build for windows (32 bits for now, [64 bits is planned] (https://github.com/PerfectCarl/robovm/issues/2)) using [mingw] (http://en.wikipedia.org/wiki/MinGW).
 
+# Status: **early alpha**
+
+Code: robovm 0.0.8
+C libraries: compiling
+Java compiler: does not support windows
+Hello world program: **not working** 
 
 # Getting started 
 How to install mingw, get the source and [build everything] (BUILD.md).
@@ -23,7 +29,6 @@ How to install mingw, get the source and [build everything] (BUILD.md).
 If you're in a hurry, you can [download the binaries] (https://github.com/PerfectCarl/robovm/wiki/Download)
 
 # What's new
-
 The complete changelog can be [found here] (CHANGELOG.md).
 
 Here are the main changes : 
@@ -35,7 +40,7 @@ Here are the main changes :
 As a rule, everything is tracked through issues : 
   - Update the jave compiler to support Windows (https://github.com/PerfectCarl/robovm/issues/16) 
   - Find [posix equivalents] (https://github.com/PerfectCarl/robovm/issues/4)
-  - Have [Networking] (https://github.com/PerfectCarl/robovm/issues/14)  and [io] (https://github.com/PerfectCarl/robovm/issues/6)
+  - Have [Networking] (https://github.com/PerfectCarl/robovm/issues/14)  and [io] (https://github.com/PerfectCarl/robovm/issues/6) working
   - Fix [misc C calls] (https://github.com/PerfectCarl/robovm/issues/7) 
   - ~~Review [assembly code] (https://github.com/PerfectCarl/robovm/issues/8)~~ 
   - ~~Pass [the test suites] (https://github.com/PerfectCarl/robovm/issues/9)~~ 
