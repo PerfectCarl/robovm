@@ -87,7 +87,7 @@ static Method* getMethod(Env* env, Class* clazz, const char* name, const char* d
 		Interface* interfaze = rvmGetInterfaces(env, c);
         if (rvmExceptionCheck(env)) return NULL;
         for (; interfaze != NULL; interfaze = interfaze->next) {
-            Method* method = getMethod(env, interfaze->interfaze, name, desc);
+            Method* method = getMethod(env, interfaze->interfaceClass, name, desc);
             if (rvmExceptionCheck(env)) return NULL;
             if (method) return method;
         }
