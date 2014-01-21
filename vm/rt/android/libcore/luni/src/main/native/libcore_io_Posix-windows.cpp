@@ -1043,13 +1043,13 @@ extern "C" jint Java_libcore_io_Posix_poll(JNIEnv* env, jobject, jobjectArray ja
 }
 
 extern "C" jint Java_libcore_io_Posix_preadBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount, jlong offset) {
-//    ScopedBytesRW bytes(env, javaBytes);
-//    if (bytes.get() == NULL) {
-//        return -1;
-//    }
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    return throwIfMinusOne(env, "pread", TEMP_FAILURE_RETRY(pread64(fd, bytes.get() + byteOffset, byteCount, offset)));
-	return 0 ; 
+    ScopedBytesRW bytes(env, javaBytes);
+    if (bytes.get() == NULL) {
+        return -1;
+    }
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    return throwIfMinusOne(env, "pread", TEMP_FAILURE_RETRY(pread64(fd, bytes.get() + byteOffset, byteCount, offset)));
+	//return 0 ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_pwriteBytes(JNIEnv* env, jobject, jobject javaFd, jbyteArray javaBytes, jint byteOffset, jint byteCount, jlong offset) {
