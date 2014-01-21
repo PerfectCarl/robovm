@@ -20,54 +20,69 @@ import org.robovm.llvm.Target;
 
 /**
  * @author niklas
- *
+ * 
  */
 public enum OS {
-    linux, macosx, ios;
-    
-    public enum Family {linux, darwin}
+	linux, macosx, ios, windows;
 
-    /**
-     * Returns whether aggregate types of the specified size can be returned
-     * in registers for this {@link OS} and the specified {@link Arch}.
-     * 
-     * @param arch the {@link Arch}.
-     * @param size the size of the aggregate type.
-     * @return <code>true</code> or <code>false</code>.
-     */
-    public boolean isReturnedInRegisters(Arch arch, int size) {
-        switch (arch) {
-        case thumbv7:
-            // ARM's AAPCS is the basis of both the iOS and Linux (EABI) ABIs
-            // and specifies that structs no larger than 4 bytes are returned
-            // in r0.
-            return size <= 4;
-        case x86:
-            // On Darwin structs of size 1, 2, 4 and 8 bytes are returned in eax:edx.
-            // On Linux no structs are returned in registers.
-            switch (this) {
-            case macosx:
-            case ios:
-                return size == 1 || size == 2 || size == 4 || size == 8;
-            case linux:
-                return false;
-            }
-        }
-        throw new IllegalArgumentException("Unknown arch: " + arch);
-    }
-    
-    public Family getFamily() {
-        return this == linux ? Family.linux : Family.darwin;
-    }
-    
-    public static OS getDefaultOS() {
-        String hostTriple = Target.getHostTriple();
-        if (hostTriple.contains("linux")) {
-            return OS.linux;
-        }
-        if (hostTriple.contains("darwin") || hostTriple.contains("apple")) {
-            return OS.macosx;
-        }
-        throw new IllegalArgumentException("Unrecognized OS in host triple: " + hostTriple);
-    }
+	public enum Family {
+		linux, darwin
+	}
+
+	/**
+	 * Returns whether aggregate types of the specified size can be returned in
+	 * registers for this {@link OS} and the specified {@link Arch}.
+	 * 
+	 * @param arch
+	 *            the {@link Arch}.
+	 * @param size
+	 *            the size of the aggregate type.
+	 * @return <code>true</code> or <code>false</code>.
+	 */
+	public boolean isReturnedInRegisters(Arch arch, int size) {
+		switch (arch) {
+		case thumbv7:
+			// ARM's AAPCS is the basis of both the iOS and Linux (EABI) ABIs
+			// and specifies that structs no larger than 4 bytes are returned
+			// in r0.
+			return size <= 4;
+		case x86:
+			// On Darwin structs of size 1, 2, 4 and 8 bytes are returned in
+			// eax:edx.
+			// On Linux no structs are returned in registers.
+			switch (this) {
+			case macosx:
+			case ios:
+				return size == 1 || size == 2 || size == 4 || size == 8;
+			case linux:
+				return false;
+			case windows:
+				return false;
+			}
+		}
+		throw new IllegalArgumentException("Unknown arch: " + arch);
+	}
+
+	public Family getFamily() {
+		return (this == linux || this == windows) ? Family.linux
+				: Family.darwin;
+	}
+
+	public static OS getDefaultOS() {
+		String hostTriple = Target.getHostTriple();
+		if (hostTriple.contains("linux")) {
+			return OS.linux;
+		}
+		if (hostTriple.contains("darwin") || hostTriple.contains("apple")) {
+			return OS.macosx;
+		}
+		if (hostTriple.contains("windows")) {
+			return OS.windows;
+		}
+		if (hostTriple.contains("mingw")) {
+			return OS.windows;
+		}
+		throw new IllegalArgumentException("Unrecognized OS in host triple: "
+				+ hostTriple);
+	}
 }

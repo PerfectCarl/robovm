@@ -33,147 +33,168 @@ import org.robovm.compiler.log.Logger;
 
 /**
  * @author niklas
- *
+ * 
  */
 public class ToolchainUtil {
-    private static String IOS_DEV_CLANG; 
-    private static String IOS_SIM_CLANG; 
-    private static String PNGCRUSH;
-    private static String PACKAGE_APPLICATION;
+	private static String IOS_DEV_CLANG;
+	private static String IOS_SIM_CLANG;
+	private static String PNGCRUSH;
+	private static String PACKAGE_APPLICATION;
 
-    private static String getIOSDevClang() throws IOException {
-        if (IOS_DEV_CLANG == null) {
-            IOS_DEV_CLANG = findXcodeCommand("clang++", "iphoneos");
-        }
-        return IOS_DEV_CLANG;
-    }
-    
-    private static String getIOSSimClang() throws IOException {
-        if (IOS_SIM_CLANG == null) {
-            IOS_SIM_CLANG = findXcodeCommand("clang++", "iphonesimulator");
-        }
-        return IOS_SIM_CLANG;
-    }
-    
-    private static String getPngCrush() throws IOException {
-        if (PNGCRUSH == null) {
-            PNGCRUSH = findXcodeCommand("pngcrush", "iphoneos");
-        }
-        return PNGCRUSH;
-    }
+	private static String getIOSDevClang() throws IOException {
+		if (IOS_DEV_CLANG == null) {
+			IOS_DEV_CLANG = findXcodeCommand("clang++", "iphoneos");
+		}
+		return IOS_DEV_CLANG;
+	}
 
-    private static String getPackageApplication() throws IOException {
-        if (PACKAGE_APPLICATION == null) {
-            PACKAGE_APPLICATION = findXcodeCommand("PackageApplication", "iphoneos");
-        }
-        return PACKAGE_APPLICATION;
-    }
+	private static String getIOSSimClang() throws IOException {
+		if (IOS_SIM_CLANG == null) {
+			IOS_SIM_CLANG = findXcodeCommand("clang++", "iphonesimulator");
+		}
+		return IOS_SIM_CLANG;
+	}
 
-    private static void handleExecuteException(ExecuteException e) {
-        if (e.getExitValue() == 2) {
-            throw new IllegalArgumentException("No Xcode is selected. Is Xcode installed? " 
-                    + "If yes, use 'sudo xcode-select -switch <path-to-xcode>' from a Terminal " 
-                    + "to switch to the correct Xcode path.");
-        }
-        if (e.getExitValue() == 69) {
-            throw new IllegalArgumentException("You must agree to the Xcode/iOS license. " 
-                    + "Please open Xcode once or run 'sudo xcrun clang' from a Terminal to agree to the terms.");
-        }
-        throw new IllegalArgumentException(e.getMessage());
-    }
-    
-    public static String findXcodePath() throws IOException {
-        try {
-            String path = new Executor(Logger.NULL_LOGGER, "xcode-select").args("--print-path").execCapture();
-            File f = new File(path);
-            if (f.exists() && f.isDirectory()) {
-                if (new File(f, "Platforms").exists() && new File(f, "Toolchains").exists()) {
-                    return path;
-                }
-            }
-            throw new IllegalArgumentException(String.format(
-                    "The path '%s' does not appear to be a valid Xcode path. Use " 
-                    + "'sudo xcode-select -switch <path-to-xcode>' from a Terminal " 
-                    + "to switch to the correct Xcode path.", path));
-        } catch (ExecuteException e) {
-            handleExecuteException(e);
-            return null;
-        }
-    }
-    
-    public static String findXcodeCommand(String cmd, String sdk) throws IOException {
-        try {
-            return new Executor(Logger.NULL_LOGGER, "xcrun").args("-sdk", sdk, "-f", cmd).execCapture();
-        } catch (ExecuteException e) {
-            handleExecuteException(e);
-            return null;
-        }
-    }
-    
-    public static void pngcrush(Config config, File inFile, File outFile) throws IOException {
-        new Executor(config.getLogger(), getPngCrush())
-            .args("-q", "-iphone", "-f", "0", inFile, outFile)
-            .exec();
-    }
+	private static String getPngCrush() throws IOException {
+		if (PNGCRUSH == null) {
+			PNGCRUSH = findXcodeCommand("pngcrush", "iphoneos");
+		}
+		return PNGCRUSH;
+	}
 
-    public static void packageApplication(Config config, File appDir, File outFile) throws IOException {
-        new Executor(config.getLogger(), getPackageApplication())
-            .args(appDir, "-o", outFile)
-            .exec();
-    }
+	private static String getPackageApplication() throws IOException {
+		if (PACKAGE_APPLICATION == null) {
+			PACKAGE_APPLICATION = findXcodeCommand("PackageApplication",
+					"iphoneos");
+		}
+		return PACKAGE_APPLICATION;
+	}
 
-    public static void link(Config config, List<String> args, List<File> objectFiles, List<String> libs, File outFile) throws IOException {
-        File objectsFile = new File(config.getTmpDir(), "objects");
-        if (config.getOs().getFamily() == OS.Family.darwin) {
-            // The Xcode linker doesn't need paths with spaces to be quoted and 
-            // will fail if we do quote
-            FileUtils.writeLines(objectsFile, objectFiles, "\n");
-        } else {
-            // The linker on Linux will fail if we don't quote paths with spaces
-            BufferedOutputStream objectsOut = null;
-            try {
-                objectsOut = new BufferedOutputStream(new FileOutputStream(objectsFile));
-                for (File f : objectFiles) {
-                    objectsOut.write('"');
-                    objectsOut.write(f.getAbsolutePath().getBytes());
-                    objectsOut.write('"');
-                    objectsOut.write('\n');
-                }
-            } finally {
-                IOUtils.closeQuietly(objectsOut);
-            }
-        }
-        
-        List<String> opts = new ArrayList<String>();
-        if (config.isDebug()) {
-            opts.add("-g");
-        }
-        if (config.getOs().getFamily() == OS.Family.darwin) {
-            opts.add("-arch");            
-            opts.add(config.getArch().getClangName());            
-            opts.add("-Wl,-filelist," + objectsFile.getAbsolutePath());
-        } else {
-            opts.add("-m32");
-            opts.add("@" + objectsFile.getAbsolutePath());
-        }
-        opts.addAll(args);
+	private static void handleExecuteException(ExecuteException e) {
+		if (e.getExitValue() == 2) {
+			throw new IllegalArgumentException(
+					"No Xcode is selected. Is Xcode installed? "
+							+ "If yes, use 'sudo xcode-select -switch <path-to-xcode>' from a Terminal "
+							+ "to switch to the correct Xcode path.");
+		}
+		if (e.getExitValue() == 69) {
+			throw new IllegalArgumentException(
+					"You must agree to the Xcode/iOS license. "
+							+ "Please open Xcode once or run 'sudo xcrun clang' from a Terminal to agree to the terms.");
+		}
+		throw new IllegalArgumentException(e.getMessage());
+	}
 
-        new Executor(config.getLogger(), getCcPath(config))
-            .args("-o", outFile, opts, libs)
-            .exec();
-    }
+	public static String findXcodePath() throws IOException {
+		try {
+			String path = new Executor(Logger.NULL_LOGGER, "xcode-select")
+					.args("--print-path").execCapture();
+			File f = new File(path);
+			if (f.exists() && f.isDirectory()) {
+				if (new File(f, "Platforms").exists()
+						&& new File(f, "Toolchains").exists()) {
+					return path;
+				}
+			}
+			throw new IllegalArgumentException(
+					String.format(
+							"The path '%s' does not appear to be a valid Xcode path. Use "
+									+ "'sudo xcode-select -switch <path-to-xcode>' from a Terminal "
+									+ "to switch to the correct Xcode path.",
+							path));
+		} catch (ExecuteException e) {
+			handleExecuteException(e);
+			return null;
+		}
+	}
 
-    private static String getCcPath(Config config) throws IOException {
-        String ccPath = config.getOs().getFamily() == OS.Family.darwin ? "clang++" : "g++";
-        if (config.getCcBinPath() != null) {
-            ccPath = config.getCcBinPath().getAbsolutePath();
-        } else if (config.getOs() == OS.ios) {
-            if (config.getArch() == Arch.x86) {
-                ccPath = getIOSSimClang();
-            } else {
-                ccPath = getIOSDevClang();
-            }
-        }
-        return ccPath;
-    }
+	public static String findXcodeCommand(String cmd, String sdk)
+			throws IOException {
+		try {
+			return new Executor(Logger.NULL_LOGGER, "xcrun").args("-sdk", sdk,
+					"-f", cmd).execCapture();
+		} catch (ExecuteException e) {
+			handleExecuteException(e);
+			return null;
+		}
+	}
+
+	public static void pngcrush(Config config, File inFile, File outFile)
+			throws IOException {
+		new Executor(config.getLogger(), getPngCrush()).args("-q", "-iphone",
+				"-f", "0", inFile, outFile).exec();
+	}
+
+	public static void packageApplication(Config config, File appDir,
+			File outFile) throws IOException {
+		new Executor(config.getLogger(), getPackageApplication()).args(appDir,
+				"-o", outFile).exec();
+	}
+
+	public static void link(Config config, List<String> args,
+			List<File> objectFiles, List<String> libs, File outFile)
+			throws IOException {
+		File objectsFile = new File(config.getTmpDir(), "objects");
+		if (config.getOs().getFamily() == OS.Family.darwin) {
+			// The Xcode linker doesn't need paths with spaces to be quoted and
+			// will fail if we do quote
+			FileUtils.writeLines(objectsFile, objectFiles, "\n");
+		} else {
+			// The linker on Linux will fail if we don't quote paths with spaces
+			BufferedOutputStream objectsOut = null;
+			try {
+				objectsOut = new BufferedOutputStream(new FileOutputStream(
+						objectsFile));
+				for (File f : objectFiles) {
+					objectsOut.write('"');
+					if (config.getOs() == OS.windows)
+						objectsOut.write(f.getAbsolutePath()
+								.replace("\\", "\\\\").getBytes());
+					else
+						objectsOut.write(f.getAbsolutePath().getBytes());
+					objectsOut.write('"');
+					objectsOut.write('\n');
+				}
+			} finally {
+				IOUtils.closeQuietly(objectsOut);
+			}
+		}
+
+		List<String> opts = new ArrayList<String>();
+		if (config.isDebug()) {
+			opts.add("-g");
+		}
+		if (config.getOs().getFamily() == OS.Family.darwin) {
+			opts.add("-arch");
+			opts.add(config.getArch().getClangName());
+			opts.add("-Wl,-filelist," + objectsFile.getAbsolutePath());
+		} else {
+			opts.add("-m32");
+			opts.add("@" + objectsFile.getAbsolutePath());
+		}
+		opts.addAll(args);
+
+		new Executor(config.getLogger(), getCcPath(config)).args("-o", outFile,
+				opts, libs).exec();
+	}
+
+	private static String getCcPath(Config config) throws IOException {
+		String ccPath = config.getOs().getFamily() == OS.Family.darwin ? "clang++"
+				: "g++";
+		if (config.getCcBinPath() != null) {
+			ccPath = config.getCcBinPath().getAbsolutePath();
+		} else if (config.getOs() == OS.ios) {
+			if (config.getArch() == Arch.x86) {
+				ccPath = getIOSSimClang();
+			} else {
+				ccPath = getIOSDevClang();
+			}
+		} else if (config.getOs() == OS.windows) {
+			String toolchainPath = "C:\\Users\\cran\\Dropbox\\docs\\projects\\github\\robovm\\llvm\\dependencies\\mingw64";
+			toolchainPath = "C:\\Apps\\Mingw";
+
+			ccPath = toolchainPath + "\\bin\\g++";
+		}
+		return ccPath;
+	}
 }

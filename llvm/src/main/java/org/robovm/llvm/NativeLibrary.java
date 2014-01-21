@@ -30,84 +30,91 @@ import org.robovm.llvm.binding.LLVM;
  * 
  */
 public class NativeLibrary {
-    private static boolean loaded = false;
-    private static final String os;
-    private static final String arch;
-    private static final String libName;
+	private static boolean loaded = false;
+	private static final String os;
+	private static final String arch;
+	private static final String libName;
 
-    static {
-        String osProp = System.getProperty("os.name").toLowerCase();
-        String archProp = System.getProperty("os.arch").toLowerCase();
-        if (osProp.startsWith("mac") || osProp.startsWith("darwin")) {
-            os = "macosx";
-        } else if (osProp.startsWith("linux")) {
-            os = "linux";
-        } else {
-            throw new Error("Unsupported OS: " + System.getProperty("os.name"));
-        }
-        if (archProp.matches("amd64|x86[-_]64")) {
-            arch = "x86_64";
-        } else if (archProp.matches("i386|x86")) {
-            arch = "x86";
-        } else {
-            throw new Error("Unsupported arch: " + System.getProperty("os.arch"));
-        }
-        
-        libName = "librobovm-llvm" + (os.equals("macosx") ? ".dylib" : ".so");
-    }
-    
-    public static synchronized void load() {
-        if (loaded) {
-            return;
-        }
-        
-        String prefix = libName.substring(0, libName.lastIndexOf('.'));
-        String ext = libName.substring(libName.lastIndexOf('.'));
-        
-        InputStream in = NativeLibrary.class.getResourceAsStream("binding/" + os + "/" + arch + "/" + libName);
-        if (in == null) {
-            throw new UnsatisfiedLinkError("Native library for " + os + "-" + arch + " not found");
-        }
-        OutputStream out = null;
-        File tmpLibFile = null;
-        try {
-            tmpLibFile = File.createTempFile(prefix, ext);
-            tmpLibFile.deleteOnExit();
-            out = new BufferedOutputStream(new FileOutputStream(tmpLibFile));
-            copy(in, out);
-        } catch (IOException e) {
-            throw (Error) new UnsatisfiedLinkError(e.getMessage()).initCause(e);
-        } finally {
-            closeQuietly(in);
-            closeQuietly(out);
-        }
-        
-        Runtime.getRuntime().load(tmpLibFile.getAbsolutePath());
-        if (!LLVM.StartMultithreaded()) {
-            throw new UnsatisfiedLinkError("LLVMStartMultithreaded failed");
-        }
-        
-        LLVM.InitializeAllTargets();
-        LLVM.InitializeAllTargetInfos();
-        LLVM.InitializeAllTargetMCs();
-        LLVM.InitializeAllAsmPrinters();
-        LLVM.InitializeAllAsmParsers();
-    }
-    
-    private static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[4096];
-        int n = 0;
-        while ((n = in.read(buffer)) != -1) {
-            out.write(buffer, 0, n);
-        }
-    }
-    
-    private static void closeQuietly(Closeable in) {
-        try {
-            if (in != null) {
-                in.close();
-            }
-        } catch (IOException ioe) {
-        }
-    }
+	static {
+		String osProp = System.getProperty("os.name").toLowerCase();
+		String archProp = System.getProperty("os.arch").toLowerCase();
+		if (osProp.startsWith("mac") || osProp.startsWith("darwin")) {
+			os = "macosx";
+			libName = "librobovm-llvm" + ".dylib";
+		} else if (osProp.startsWith("linux")) {
+			os = "linux";
+			libName = "librobovm-llvm" + ".so";
+		} else if (osProp.startsWith("windows")) {
+			os = "windows";
+			libName = "librobovm-llvm" + ".dll";
+		} else {
+			throw new Error("Unsupported OS: " + System.getProperty("os.name"));
+		}
+		if (archProp.matches("amd64|x86[-_]64")) {
+			arch = "x86_64";
+		} else if (archProp.matches("i386|x86")) {
+			arch = "x86";
+		} else {
+			throw new Error("Unsupported arch: "
+					+ System.getProperty("os.arch"));
+		}
+	}
+
+	public static synchronized void load() {
+		if (loaded) {
+			return;
+		}
+
+		String prefix = libName.substring(0, libName.lastIndexOf('.'));
+		String ext = libName.substring(libName.lastIndexOf('.'));
+
+		String path = "binding/" + os + "/" + arch + "/" + libName;
+		InputStream in = NativeLibrary.class.getResourceAsStream(path);
+		if (in == null) {
+			throw new UnsatisfiedLinkError("Native library for " + os + "-"
+					+ arch + " not found. Path: " + path);
+		}
+		OutputStream out = null;
+		File tmpLibFile = null;
+		try {
+			tmpLibFile = File.createTempFile(prefix, ext);
+			tmpLibFile.deleteOnExit();
+			out = new BufferedOutputStream(new FileOutputStream(tmpLibFile));
+			copy(in, out);
+		} catch (IOException e) {
+			throw (Error) new UnsatisfiedLinkError(e.getMessage()).initCause(e);
+		} finally {
+			closeQuietly(in);
+			closeQuietly(out);
+		}
+
+		Runtime.getRuntime().load(tmpLibFile.getAbsolutePath());
+		if (!LLVM.StartMultithreaded()) {
+			throw new UnsatisfiedLinkError("LLVMStartMultithreaded failed");
+		}
+
+		LLVM.InitializeAllTargets();
+		LLVM.InitializeAllTargetInfos();
+		LLVM.InitializeAllTargetMCs();
+		LLVM.InitializeAllAsmPrinters();
+		LLVM.InitializeAllAsmParsers();
+	}
+
+	private static void copy(InputStream in, OutputStream out)
+			throws IOException {
+		byte[] buffer = new byte[4096];
+		int n = 0;
+		while ((n = in.read(buffer)) != -1) {
+			out.write(buffer, 0, n);
+		}
+	}
+
+	private static void closeQuietly(Closeable in) {
+		try {
+			if (in != null) {
+				in.close();
+			}
+		} catch (IOException ioe) {
+		}
+	}
 }
