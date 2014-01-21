@@ -39,8 +39,11 @@
 /** Close all open fds > 2 (i.e. everything but stdin/out/err), != skipFd. */
 static void closeNonStandardFds(int skipFd1, int skipFd2) {
     // TODO: rather than close all these non-open files, we could look in /proc/self/fd.
-// CARL posix process
-#ifndef WINDOWS
+// CARL posix process TODO
+#ifdef WINDOWS
+	printf("WINDOWS limitations. Function: closeNonStandardFds") ;
+
+#else
 	rlimit rlimit;
     getrlimit(RLIMIT_NOFILE, &rlimit);
     const int max_fd = rlimit.rlim_max;
@@ -56,8 +59,11 @@ static void closeNonStandardFds(int skipFd1, int skipFd2) {
 
 /** Closes all pipes in the given array. */
 static void closePipes(int pipes[], int skipFd) {
-// CARL posix process
-#ifndef WINDOWS
+// CARL posix process TODO
+#ifdef WINDOWS
+	printf("WINDOWS limitations. Function: closePipes") ;
+
+#else
 	for (int i = 0; i < PIPE_COUNT * 2; i++) {
         int fd = pipes[i];
         if (fd == -1) {
@@ -75,8 +81,9 @@ static pid_t executeProcess(JNIEnv* env, char** commands, char** environment,
         const char* workingDirectory, jobject inDescriptor,
         jobject outDescriptor, jobject errDescriptor,
         jboolean redirectErrorStream) {
-// CARL posix process
+// CARL posix process TODO
 #ifdef WINDOWS
+	printf("WINDOWS limitations. Function: executeProcess") ;
 	return -1 ;
 #else
     // Keep track of the system properties fd so we don't close it.

@@ -312,8 +312,10 @@ static void throwSSLExceptionWithSslErrors(
 
     // Prepend either our explicit message or a default one.
     char* str;
-// CARL : asprintf
-#ifndef WINDOWS
+// CARL misc c, asprintf
+#ifdef WINDOWS
+	printf("WINDOWS limitations. throwSSLExceptionWithSslErrors" ) ;
+#else
     if (asprintf(&str, "%s: ssl=%p: %s", message, ssl, sslErrorStr) <= 0) {
         // problem with asprintf, just throw argument message, log everything
         throwSSLExceptionStr(env, message);
@@ -324,8 +326,10 @@ static void throwSSLExceptionWithSslErrors(
 #endif
 
     char* allocStr = str;
-// CARL : asprintf
-#ifndef WINDOWS
+// CARL misc c, asprintf
+#ifdef WINDOWS
+	printf("WINDOWS limitations. throwSSLExceptionWithSslErrors" ) ;
+#else
     // For protocol errors, SSL might have more information.
     if (sslErrorCode == SSL_ERROR_NONE || sslErrorCode == SSL_ERROR_SSL) {
         // Append each error as an additional line to the message.
@@ -514,8 +518,9 @@ static void locking_function(int mode, int n, const char*, int) {
 
 
 static unsigned long id_function(void) {
-// CARL posix pthread 
- #ifdef WINDOWS
+// CARL posix process TODO
+#ifdef WINDOWS
+	printf("WINDOWS limitations. Function: id_function") ;
 	return 0;
  #else
 	return ((unsigned long)THREAD_ID);
@@ -2086,8 +2091,10 @@ class AppData {
   public:
     static AppData* create() {
         UniquePtr<AppData> appData(new AppData());
-// CARL posix pipe
- #ifndef WINDOWS
+// CARL posix process TODO
+#ifdef WINDOWS
+	printf("WINDOWS limitations. Function: create") ;
+#else
 		if (pipe(appData.get()->fdsEmergency) == -1) {
             return NULL;
         }

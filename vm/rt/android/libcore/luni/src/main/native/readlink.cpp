@@ -20,6 +20,11 @@
 #include <string>
 #include <unistd.h>
 
+// CARL TODO misc C
+#ifdef WINDOWS
+#include<stdio.h>
+#endif
+
 bool readlink(const char* path, std::string& result) {
     // We can't know how big a buffer readlink(2) will need, so we need to
     // loop until it says "that fit".
@@ -29,6 +34,7 @@ bool readlink(const char* path, std::string& result) {
 // CARL : misc C
 #ifdef WINDOWS
 		ssize_t len = NULL ;
+		printf("WINDOWS limitations. Function: readlink. File: %s", path ) ;
 #else
         ssize_t len = readlink(path, &buf[0], buf.size());
 #endif

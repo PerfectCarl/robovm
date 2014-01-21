@@ -27,10 +27,10 @@ static Field* getField(Env* env, Class* clazz, char* name, char* desc) {
 // CARL DONE interfaze misc c name collision
 // https://gist.github.com/PerfectCarl/5209348
 
-    Interface* interfaze = rvmGetInterfaces(env, clazz);
+    Interface* intf = rvmGetInterfaces(env, clazz);
     if (rvmExceptionCheck(env)) return NULL;
-    for (; interfaze != NULL; interfaze = interfaze->next) {
-        field = getField(env, interfaze->interfaceClass, name, desc);
+    for (; intf != NULL; intf = intf->next) {
+        field = getField(env, intf->interfaceClass, name, desc);
         if (rvmExceptionCheck(env)) return NULL;
         if (field) return field;
     }

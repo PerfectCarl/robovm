@@ -21,7 +21,7 @@
 #include "JniConstants.h"
 
 #include <errno.h>
-// CARL termio
+// CARL io TODO termio
 #ifdef WINDOWS
 #include <windows.h>
 #include <wincon.h>
@@ -32,8 +32,9 @@
 #include <unistd.h>
 
 extern "C" jint Java_java_io_Console_setEchoImpl(JNIEnv* env, jclass, jboolean on, jint previousState) {
-// CARL termio
+// CARL io termio TODO
 #ifdef WINDOWS 
+	printf("WINDOWS limitations. Java_java_io_Console_setEchoImpl" ) ;
 	return 0;
 #else
 	termios state;

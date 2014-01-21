@@ -77,7 +77,7 @@ DSO_METHOD *DSO_METHOD_dlfcn(void)
 	}
 #else
 
-// CARL dll. Where is this defined in the fisrt place ?
+// CARL dll. Where is this defined in the first place ?
 #ifdef WINDOWS 
 #undef HAVE_DLFCN_H
 #endif 
@@ -484,6 +484,7 @@ static void *dlfcn_globallookup(const char *name)
 // CARL dll
 #ifdef WINDOWS
 	void *ret = NULL,*handle = NULL ;
+	printf("WINDOWS doesn't support dll loading. Function: dlfcn_globallookup. File: %s", name ) ;
 #else
 	void *ret = NULL,*handle = dlopen(NULL,RTLD_LAZY);	
 #endif

@@ -38,18 +38,18 @@
 
 #include <signal.h>
 #include <stdlib.h>
-// CARL io
+// CARL io TODO
 #ifndef WINDOWS
 #include <sys/ioctl.h>
 #endif
 
-// CARL mman
+// CARL mman TODO
 #ifndef WINDOWS
 #include <sys/mman.h>
 #endif
 
 #include <sys/stat.h>
-// CARL wait.h
+// CARL wait.h 
 #ifndef WINDOWS
 #include <sys/wait.h>
 #endif

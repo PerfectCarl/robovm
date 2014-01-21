@@ -35,6 +35,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+// CARL TODO misc C
+#ifdef WINDOWS
+#include<stdio.h>
+#endif
+
 /**
  * This differs from realpath(3) mainly in its behavior when a path element does not exist or can
  * not be searched. realpath(3) treats that as an error and gives up, but we have Java-compatible
@@ -90,7 +95,9 @@ bool realpath(const char* path, std::string& resolved) {
         // See if we've got a symbolic link, and resolve it if so.
         struct stat sb;
 // CARL misc C
-#ifndef WINDOWS
+#ifdef WINDOWS
+		printf("WINDOWS limitations. Function: realpath. File: %s", path ) ;
+#else
         if (lstat(resolved.c_str(), &sb) == 0 && S_ISLNK(sb.st_mode)) {
             if (symlinkCount++ > MAXSYMLINKS) {
                 errno = ELOOP;

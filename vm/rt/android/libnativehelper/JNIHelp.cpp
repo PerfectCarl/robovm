@@ -138,7 +138,10 @@ make: *** [all] Error 2
 
 */
 	if (messageChars != NULL) {
-#ifndef WINDOWS 
+// CARL misc c, asprintf
+#ifdef WINDOWS
+	printf("WINDOWS limitations. getExceptionSummary0" ) ;
+#else
 		asprintf(&result, "%s: %s", classNameChars, messageChars);
 #endif
         (*env)->ReleaseStringUTFChars(e, messageStr.get(), messageChars);

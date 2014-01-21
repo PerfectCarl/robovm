@@ -177,11 +177,12 @@ bool inetAddressToSockaddr(JNIEnv* env, jobject inetAddress, int port, sockaddr_
 }
 
 bool setBlocking(int fd, bool blocking) {
-	// CARL : network
+	// CARL : network TODO
 #ifndef WINDOWS
     int flags = fcntl(fd, F_GETFL);
 #else
 	int flags = 0 ; 
+	printf("WINDOWS limitations. Function: setBlocking") ; 
 #endif
     if (flags == -1) {
         return false;
@@ -197,6 +198,7 @@ bool setBlocking(int fd, bool blocking) {
 	int rc = fcntl(fd, F_SETFL, flags);
 #else
 	int rc = 0 ; 
+	printf("WINDOWS limitations. Function: setBlocking") ; 
 #endif
     return (rc != -1);
 }

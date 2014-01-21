@@ -559,11 +559,13 @@ private:
 
         // split the input into up to 3 parts: a|b|c
         char* context = NULL;
-// CARL strtok_r
+// CARL misc c, strtok_r
 #ifdef WINDOWS
 	    char* a = "CARL WINDOWS BUILD";
         char* b = "CARL WINDOWS BUILD";
         char* c = "CARL WINDOWS BUILD";
+		printf("WINDOWS limitations. Function: ExpatParser.init.") ;
+
 #else
         char* a = strtok_r(mCopy, "|", &context);
         char* b = strtok_r(NULL, "|", &context);

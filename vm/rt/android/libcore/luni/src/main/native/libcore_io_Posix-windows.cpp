@@ -16,7 +16,7 @@
 
 #define LOG_TAG "Posix"
 
-// CARL posix : posix windows file
+// CARL posix TODO : posix windows file
 #ifndef WINDOWS
 
 #include "AsynchronousSocketCloseMonitor.h"

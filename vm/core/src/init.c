@@ -326,6 +326,7 @@ DynamicLib* rvmOpenDynamicLib(Env* env, const char* file, char** errorMsg) {
 // TODO CARL dll
 #ifdef WINDOWS
     void* handle = NULL ; 
+	printf("WINDOWS limitations. Function: rvmOpenDynamicLib. File: %s", file ) ;
 #else
 	void* handle = dlopen(file, RTLD_LOCAL | RTLD_LAZY);
 #endif

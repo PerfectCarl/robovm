@@ -61,8 +61,10 @@ void AsynchronousSocketCloseMonitor::init() {
     // Using sigaction(2) lets us ensure that the SA_RESTART flag is not set.
     // (The whole reason we're sending this signal is to unblock system calls!)
 
-	// CARL posix signal/threads
+	// CARL posix signal/threads TODO
 #if defined(WINDOWS)
+	printf("WINDOWS limitations. Function: AsynchronousSocketCloseMonitor::init" ) ;
+
 #else
 	
 	struct sigaction sa;

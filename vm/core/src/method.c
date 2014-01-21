@@ -84,10 +84,10 @@ static Method* getMethod(Env* env, Class* clazz, const char* name, const char* d
 // CARL DONE interfaze misc c name collision
 // https://gist.github.com/PerfectCarl/5209348
 
-		Interface* interfaze = rvmGetInterfaces(env, c);
+		Interface* intf = rvmGetInterfaces(env, c);
         if (rvmExceptionCheck(env)) return NULL;
-        for (; interfaze != NULL; interfaze = interfaze->next) {
-            Method* method = getMethod(env, interfaze->interfaceClass, name, desc);
+        for (; intf != NULL; intf = intf->next) {
+            Method* method = getMethod(env, intf->interfaceClass, name, desc);
             if (rvmExceptionCheck(env)) return NULL;
             if (method) return method;
         }

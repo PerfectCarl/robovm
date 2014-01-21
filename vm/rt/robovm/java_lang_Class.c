@@ -121,16 +121,16 @@ ObjectArray* Java_java_lang_Class_getInterfaces(Env* env, Class* thiz) {
     if (rvmExceptionCheck(env)) return NULL;
 // CARL DONE interfaze misc c name collision
 // https://gist.github.com/PerfectCarl/5209348
-    Interface* interfaze;
+    Interface* intf;
     jint length = 0;
-    LL_FOREACH(interfaces, interfaze) {
+    LL_FOREACH(interfaces, intf) {
         length++;
     }
     ObjectArray* result = rvmNewObjectArray(env, length, java_lang_Class, NULL, NULL);
     if (!result) return NULL;
     jint i = 0;
-    LL_FOREACH(interfaces, interfaze) {
-        result->values[i++] = (Object*) interfaze->interfaceClass;
+    LL_FOREACH(interfaces, intf) {
+        result->values[i++] = (Object*) intf->interfaceClass;
     }
     return result;
 }

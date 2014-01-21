@@ -30,6 +30,7 @@ jlong Java_org_robovm_rt_bro_Dl_open(Env* env, Class* c, Object* name) {
  // CARL dll
 #ifdef WINDOWS
     void* handle = NULL ;
+	printf("WINDOWS doesn't support dll loading. Function: Java_org_robovm_rt_bro_Dl_open. File: %s", cName ) ;
 #else
 	void* handle = dlopen(cName, RTLD_LOCAL | RTLD_LAZY);
 #endif

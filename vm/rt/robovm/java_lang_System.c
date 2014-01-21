@@ -31,7 +31,7 @@
 #   include <mach/mach_time.h>
 #endif
 
-// CARL posix ? dll ?
+// CARL posix ? dll ? TODO
 #define DSO_PREFIX "lib"
 #define DSO_EXT ".so"
 #if defined(DARWIN)
@@ -65,7 +65,9 @@ jlong Java_java_lang_System_nanoTime(JNIEnv* env, jclass clazz) {
     return (jlong) t;
 #else 
 #ifdef WINDOWS
-	// CARL posix
+	// CARL posix TODO
+	printf("WINDOWS limitations. Function: Java_java_lang_System_nanoTime") ;
+
 	return 0 ;
 #else
     struct timespec ts;
