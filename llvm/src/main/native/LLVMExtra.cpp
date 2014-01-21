@@ -33,6 +33,7 @@
 #include <xlocale.h>
 #endif
 
+
 #include <jni.h>
 
 #include "LLVMExtra.h"
@@ -293,9 +294,10 @@ static void assembleDiagHandler(const SMDiagnostic &Diag, void *Context) {
 int LLVMTargetMachineAssembleToOutputStream(LLVMTargetMachineRef TM, LLVMMemoryBufferRef Mem, void *JOStream, LLVMBool RelaxAll, LLVMBool NoExecStack, char **ErrorMessage) {
   *ErrorMessage = NULL;
 
+#ifndef WINDOWS
   locale_t loc = newlocale(LC_ALL_MASK, "C", 0);
   locale_t oldLoc = uselocale(loc);
-
+#endif
   TargetMachine *TheTargetMachine = unwrap(TM);
   const Target *TheTarget = &(TheTargetMachine->getTarget());
 
@@ -354,8 +356,11 @@ int LLVMTargetMachineAssembleToOutputStream(LLVMTargetMachineRef TM, LLVMMemoryB
   Out.flush();
 
 done:
+// CARL TODO review
+#ifndef WINDOWS
   uselocale(oldLoc);
   freelocale(loc);
+#endif
   return *ErrorMessage ? 1 : 0;
 }
 
@@ -400,16 +405,19 @@ static LLVMBool LLVMTargetMachineEmit(LLVMTargetMachineRef T, LLVMModuleRef M,
 
 LLVMBool LLVMTargetMachineEmitToOutputStream(LLVMTargetMachineRef T, LLVMModuleRef M,
   void *JOStream, LLVMCodeGenFileType codegen, char** ErrorMessage) {
-
+// CARL TODO review
+#ifndef WINDOWS
   locale_t loc = newlocale(LC_ALL_MASK, "C", 0);
   locale_t oldLoc = uselocale(loc);
+#endif
 
   formatted_raw_ostream Out(*((raw_java_ostream*) JOStream));
   bool Result = LLVMTargetMachineEmit(T, M, Out, codegen, ErrorMessage);
   Out.flush();
-
+// CARL TODO review
+#ifndef WINDOWS
   uselocale(oldLoc);
   freelocale(loc);
-
+#endif
   return Result;
 }

@@ -14,7 +14,7 @@ DONT PATH=%PATH%;%MINGW_PATH%\bin
 DONT PATH=%PATH%;%MINGW_PATH%\msys\1.0\bin;
 
 DONT MSYS
-
+PTHREADS !!
 ## Install cmake 
 
 http://www.cmake.org/cmake/resources/software.html

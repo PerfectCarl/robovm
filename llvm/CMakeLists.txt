@@ -8,6 +8,9 @@ if(OS STREQUAL "linux")
   set(LINUX YES)
 elseif(OS STREQUAL "macosx")
   set(MACOSX YES)
+elseif(OS STREQUAL "windows")
+  set(WINDOWS YES)
+  add_definitions(-DWINDOWS)
 endif()
 
 if (ARCH STREQUAL "x86")
@@ -29,33 +32,67 @@ elseif(LINUX AND X86)
 elseif(LINUX AND X86_64)
   set(C_CXX_FLAGS "${C_CXX_FLAGS} -m64")
   set(LD_FLAGS "${LD_FLAGS} -m64")
+elseif(WINDOWS AND X86)
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} -m32")
+  set(LD_FLAGS "${LD_FLAGS} -m64")
+elseif(WINDOWS AND X86_64)
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} -m64")
+  set(LD_FLAGS "${LD_FLAGS} -m64")
 endif()
 
 set(LLVM_ARCHS "X86^^ARM")
 set(LLVM_C_FLAGS "${C_CXX_FLAGS} -fvisibility=hidden -fdata-sections -ffunction-sections")
 set(LLVM_CXX_FLAGS "${C_CXX_FLAGS} -fvisibility=hidden -fdata-sections -ffunction-sections")
+
+if( MACOSX OR LINUX )
 ExternalProject_Add(extllvm
-  URL http://llvm.org/releases/3.3/llvm-3.3.src.tar.gz
+  URL http://llvm.org/releases/3.4/llvm-3.4.src.tar.gz
   LIST_SEPARATOR ^^
-  CONFIGURE_COMMAND cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/llvm" "-DLLVM_TARGETS_TO_BUILD=${LLVM_ARCHS}" "-DCMAKE_C_FLAGS=${LLVM_C_FLAGS}" "-DCMAKE_CXX_FLAGS=${LLVM_CXX_FLAGS}" ../extllvm/
+  CONFIGURE_COMMAND cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/llvm" "-DLLVM_TARGETS_TO_BUILD=${LLVM_ARCHS}" "-DCMAKE_C_FLAGS=${LLVM_C_FLAGS}" "-DCMAKE_CXX_FLAGS=${LLVM_CXX_FLAGS}" -G "MSYS Makefiles" ../extllvm/
 )
+endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C_CXX_FLAGS} -fno-rtti")
 set(CMAKE_INSTALL_DO_STRIP YES)
 
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
+if( WINDOWS ) 
+include_directories(${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2} ${LLVM_DIR}/include)
+else()
 include_directories(${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2} ${CMAKE_BINARY_DIR}/llvm/include)
+endif() 
 
 # This was generated using 'llvm-config --libs core bitreader bitwriter irreader ipo arm x86 OUTPUT_VARIABLE LLVM_LIBS'
+if( WINDOWS )  
+set(LLVM_LIBS
+-lLLVMInstrumentation -lLLVMArchive -lLLVMLinker -lLLVMIRReader -lLLVMBitReader -lLLVMAsmParser -lLLVMDebugInfo -lLLVMOption 
+-lLLVMipo -lLLVMVectorize -lLLVMBitWriter -lLLVMTableGen -lLLVMSystemZCodeGen -lLLVMSystemZAsmParser -lLLVMSystemZDesc 
+-lLLVMSystemZInfo -lLLVMSystemZAsmPrinter -lLLVMHexagonCodeGen -lLLVMHexagonAsmPrinter -lLLVMHexagonDesc -lLLVMHexagonInfo 
+-lLLVMNVPTXCodeGen -lLLVMNVPTXDesc -lLLVMNVPTXInfo -lLLVMNVPTXAsmPrinter -lLLVMMBlazeDisassembler -lLLVMMBlazeCodeGen 
+-lLLVMMBlazeDesc -lLLVMMBlazeAsmPrinter -lLLVMMBlazeAsmParser -lLLVMMBlazeInfo -lLLVMCppBackendCodeGen -lLLVMCppBackendInfo 
+-lLLVMMSP430CodeGen -lLLVMMSP430Desc -lLLVMMSP430Info -lLLVMMSP430AsmPrinter -lLLVMXCoreDisassembler -lLLVMXCoreCodeGen 
+-lLLVMXCoreDesc -lLLVMXCoreInfo -lLLVMXCoreAsmPrinter -lLLVMMipsDisassembler -lLLVMMipsCodeGen -lLLVMMipsAsmParser 
+-lLLVMMipsDesc -lLLVMMipsInfo -lLLVMMipsAsmPrinter -lLLVMARMDisassembler -lLLVMARMCodeGen -lLLVMARMAsmParser -lLLVMARMDesc 
+-lLLVMARMInfo -lLLVMARMAsmPrinter -lLLVMAArch64Disassembler -lLLVMAArch64CodeGen -lLLVMAArch64AsmParser -lLLVMAArch64Desc 
+-lLLVMAArch64Info -lLLVMAArch64AsmPrinter -lLLVMAArch64Utils -lLLVMPowerPCCodeGen -lLLVMPowerPCDesc -lLLVMPowerPCAsmPrinter
+-lLLVMPowerPCAsmParser -lLLVMPowerPCInfo -lLLVMSparcCodeGen -lLLVMSparcDesc -lLLVMSparcInfo -lLLVMX86Disassembler 
+-lLLVMX86AsmParser -lLLVMX86CodeGen -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMX86Info -lLLVMX86AsmPrinter
+-lLLVMX86Utils -lLLVMMCDisassembler -lLLVMMCParser -lLLVMInterpreter -lLLVMMCJIT -lLLVMJIT
+-lLLVMCodeGen -lLLVMObjCARCOpts -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils -lLLVMipa -lLLVMAnalysis 
+-lLLVMRuntimeDyld -lLLVMExecutionEngine -lLLVMTarget -lLLVMMC -lLLVMObject -lLLVMCore -lLLVMSupport -lmingwex
+
+)
+else()
 set(LLVM_LIBS
   -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen -lLLVMX86Desc -lLLVMX86Info 
   -lLLVMX86AsmPrinter -lLLVMX86Utils -lLLVMARMDisassembler -lLLVMARMCodeGen -lLLVMSelectionDAG 
   -lLLVMAsmPrinter -lLLVMCodeGen -lLLVMARMAsmParser -lLLVMMCParser -lLLVMARMDesc -lLLVMARMInfo 
   -lLLVMARMAsmPrinter -lLLVMipo -lLLVMObjCARCOpts -lLLVMVectorize -lLLVMScalarOpts -lLLVMInstCombine 
   -lLLVMTransformUtils -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMObject -lLLVMIRReader 
-  -lLLVMAsmParser -lLLVMBitWriter -lLLVMBitReader -lLLVMCore -lLLVMSupport
+  -lLLVMAsmParser -lLLVMBitWriter -lLLVMBitReader -lLLVMCore -lLLVMSupport 
 )
+endif()
 # This was generated using 'llvm-config --ldflags'
 if(LINUX)
   set(LLVM_LDFLAGS
@@ -66,6 +103,11 @@ elseif(MACOSX)
   set(LLVM_LDFLAGS
     -L"${CMAKE_BINARY_DIR}/llvm/lib"
     -lpthread -lz
+  )
+elseif(WINDOWS)
+  set(LLVM_LDFLAGS
+    -L"${LLVM_DIR}/lib" 
+	-lpsapi -limagehlp -lm
   )
 endif()
 

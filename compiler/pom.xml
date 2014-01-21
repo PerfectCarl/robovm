@@ -54,17 +54,17 @@
     <dependency>
       <groupId>org.robovm</groupId>
       <artifactId>robovm-llvm</artifactId>
-      <version>${project.version}</version>
+      <version>0.0.8</version>
     </dependency>
     <dependency>
       <groupId>org.robovm</groupId>
       <artifactId>robovm-libimobiledevice</artifactId>
-      <version>${project.version}</version>
+      <version>0.0.8</version>
     </dependency>
     <dependency>
       <groupId>org.robovm</groupId>
       <artifactId>robovm-rt</artifactId>
-      <version>${project.version}</version>
+      <version>0.0.8</version>
       <scope>test</scope>
     </dependency>
     <dependency>
