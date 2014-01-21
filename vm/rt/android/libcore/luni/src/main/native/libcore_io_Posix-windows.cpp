@@ -144,9 +144,12 @@
         } \
     } while (_rc == -1); \
     _rc; })
+ 
+
 
 static void throwException(JNIEnv* env, jclass exceptionClass, jmethodID ctor3, jmethodID ctor2,
         const char* functionName, int error) {
+	printf( "WINDOWS limitations. Function: throwException" ) ;
 //    jthrowable cause = NULL;
 //    if (env->ExceptionCheck()) {
 //        cause = env->ExceptionOccurred();
@@ -170,6 +173,7 @@ static void throwException(JNIEnv* env, jclass exceptionClass, jmethodID ctor3, 
 }
 
 static void throwErrnoException(JNIEnv* env, const char* functionName) {
+	printf( "WINDOWS limitations. Function: throwErrnoException" ) ;
 //    int error = errno;
 //    static jmethodID ctor3 = env->GetMethodID(JniConstants::errnoExceptionClass,
 //            "<init>", "(Ljava/lang/String;ILjava/lang/Throwable;)V");
@@ -179,6 +183,7 @@ static void throwErrnoException(JNIEnv* env, const char* functionName) {
 }
 
 static void throwGaiException(JNIEnv* env, const char* functionName, int error) {
+	printf( "WINDOWS limitations. Function: throwGaiException" ) ;
 //    if (errno != 0) {
 //        // EAI_SYSTEM should mean "look at errno instead", but both glibc and bionic seem to
 //        // mess this up. In particular, if you don't have INTERNET permission, errno will be EACCES
@@ -195,73 +200,74 @@ static void throwGaiException(JNIEnv* env, const char* functionName, int error) 
 //    throwException(env, JniConstants::gaiExceptionClass, ctor3, ctor2, functionName, error);
 }
 
-//template <typename rc_t>
-//static rc_t throwIfMinusOne(JNIEnv* env, const char* name, rc_t rc) {
-//    if (rc == rc_t(-1)) {
-//        throwErrnoException(env, name);
-//    }
-//    return rc;
-//}
-//
-//template <typename ScopedT>
-//class IoVec {
-//public:
-//    IoVec(JNIEnv* env, size_t bufferCount) : mEnv(env), mBufferCount(bufferCount) {
-//    }
-//
-//    bool init(jobjectArray javaBuffers, jintArray javaOffsets, jintArray javaByteCounts) {
-//        // We can't delete our local references until after the I/O, so make sure we have room.
-//        if (mEnv->PushLocalFrame(mBufferCount + 16) < 0) {
-//            return false;
-//        }
-//        ScopedIntArrayRO offsets(mEnv, javaOffsets);
-//        if (offsets.get() == NULL) {
-//            return false;
-//        }
-//        ScopedIntArrayRO byteCounts(mEnv, javaByteCounts);
-//        if (byteCounts.get() == NULL) {
-//            return false;
-//        }
-//        // TODO: Linux actually has a 1024 buffer limit. glibc works around this, and we should too.
-//        // TODO: you can query the limit at runtime with sysconf(_SC_IOV_MAX).
-//        for (size_t i = 0; i < mBufferCount; ++i) {
-//            jobject buffer = mEnv->GetObjectArrayElement(javaBuffers, i); // We keep this local ref.
-//            mScopedBuffers.push_back(new ScopedT(mEnv, buffer));
-//            jbyte* ptr = const_cast<jbyte*>(mScopedBuffers.back()->get());
-//            if (ptr == NULL) {
-//                return false;
-//            }
-//            struct iovec iov;
-//            iov.iov_base = reinterpret_cast<void*>(ptr + offsets[i]);
-//            iov.iov_len = byteCounts[i];
-//            mIoVec.push_back(iov);
-//        }
-//        return true;
-//    }
-//
-//    ~IoVec() {
-//        for (size_t i = 0; i < mScopedBuffers.size(); ++i) {
-//            delete mScopedBuffers[i];
-//        }
-//        mEnv->PopLocalFrame(NULL);
-//    }
-//
-//    iovec* get() {
-//        return &mIoVec[0];
-//    }
-//
-//    size_t size() {
-//        return mBufferCount;
-//    }
-//
-//private:
-//    JNIEnv* mEnv;
-//    size_t mBufferCount;
-//    std::vector<iovec> mIoVec;
-//    std::vector<ScopedT*> mScopedBuffers;
-//};
+template <typename rc_t>
+static rc_t throwIfMinusOne(JNIEnv* env, const char* name, rc_t rc) {
+    if (rc == rc_t(-1)) {
+        throwErrnoException(env, name);
+    }
+    return rc;
+}
+
+template <typename ScopedT>
+class IoVec {
+public:
+    IoVec(JNIEnv* env, size_t bufferCount) : mEnv(env), mBufferCount(bufferCount) {
+    }
+
+    bool init(jobjectArray javaBuffers, jintArray javaOffsets, jintArray javaByteCounts) {
+        // We can't delete our local references until after the I/O, so make sure we have room.
+        if (mEnv->PushLocalFrame(mBufferCount + 16) < 0) {
+            return false;
+        }
+        ScopedIntArrayRO offsets(mEnv, javaOffsets);
+        if (offsets.get() == NULL) {
+            return false;
+        }
+        ScopedIntArrayRO byteCounts(mEnv, javaByteCounts);
+        if (byteCounts.get() == NULL) {
+            return false;
+        }
+        // TODO: Linux actually has a 1024 buffer limit. glibc works around this, and we should too.
+        // TODO: you can query the limit at runtime with sysconf(_SC_IOV_MAX).
+        for (size_t i = 0; i < mBufferCount; ++i) {
+            jobject buffer = mEnv->GetObjectArrayElement(javaBuffers, i); // We keep this local ref.
+            mScopedBuffers.push_back(new ScopedT(mEnv, buffer));
+            jbyte* ptr = const_cast<jbyte*>(mScopedBuffers.back()->get());
+            if (ptr == NULL) {
+                return false;
+            }
+            struct iovec iov;
+            iov.iov_base = reinterpret_cast<void*>(ptr + offsets[i]);
+            iov.iov_len = byteCounts[i];
+            mIoVec.push_back(iov);
+        }
+        return true;
+    }
+
+    ~IoVec() {
+        for (size_t i = 0; i < mScopedBuffers.size(); ++i) {
+            delete mScopedBuffers[i];
+        }
+        mEnv->PopLocalFrame(NULL);
+    }
+
+    iovec* get() {
+        return &mIoVec[0];
+    }
+
+    size_t size() {
+        return mBufferCount;
+    }
+
+private:
+    JNIEnv* mEnv;
+    size_t mBufferCount;
+    std::vector<iovec> mIoVec;
+    std::vector<ScopedT*> mScopedBuffers;
+};
 
 static jobject makeSocketAddress(JNIEnv* env, const sockaddr_storage* ss) {
+	printf( "WINDOWS limitations. Function: makeSocketAddress" ) ;
     // TODO: support AF_UNIX and AF_UNSPEC (and other families?)
 //    jint port;
 //    jobject inetAddress = sockaddrToInetAddress(env, ss, &port);
@@ -275,6 +281,7 @@ static jobject makeSocketAddress(JNIEnv* env, const sockaddr_storage* ss) {
 }
 
 static jobject makeStructPasswd(JNIEnv* env, const struct passwd& pw) {
+	printf( "WINDOWS limitations. Function: makeStructPasswd" ) ;
 //    TO_JAVA_STRING(pw_name, pw.pw_name);
 //    TO_JAVA_STRING(pw_dir, pw.pw_dir);
 //    TO_JAVA_STRING(pw_shell, pw.pw_shell);
@@ -286,6 +293,7 @@ static jobject makeStructPasswd(JNIEnv* env, const struct passwd& pw) {
 }
 
 static jobject makeStructStat(JNIEnv* env, const struct stat& sb) {
+	printf( "WINDOWS limitations. Function: makeStructStat" ) ;
 //    static jmethodID ctor = env->GetMethodID(JniConstants::structStatClass, "<init>",
 //            "(JJIJIIJJJJJJJ)V");
 //    return env->NewObject(JniConstants::structStatClass, ctor,
@@ -300,6 +308,7 @@ static jobject makeStructStat(JNIEnv* env, const struct stat& sb) {
 }
 
 static jobject makeStructStatFs(JNIEnv* env, const struct statfs& sb) {
+	printf( "WINDOWS limitations. Function: makeStructStatFs" ) ;
 //    STATIC_ASSERT(sizeof(sb.f_bavail) == sizeof(jlong), statfs_not_64_bit);
 //    STATIC_ASSERT(sizeof(sb.f_bfree) == sizeof(jlong), statfs_not_64_bit);
 //    STATIC_ASSERT(sizeof(sb.f_blocks) == sizeof(jlong), statfs_not_64_bit);
@@ -321,12 +330,14 @@ static jobject makeStructStatFs(JNIEnv* env, const struct statfs& sb) {
 }
 
 static jobject makeStructLinger(JNIEnv* env, const struct linger& l) {
+	printf( "WINDOWS limitations. Function: makeStructLinger" ) ;
 //    static jmethodID ctor = env->GetMethodID(JniConstants::structLingerClass, "<init>", "(II)V");
 //    return env->NewObject(JniConstants::structLingerClass, ctor, l.l_onoff, l.l_linger);
 	return NULL ; 
 }
 
 static jobject makeStructTimeval(JNIEnv* env, const struct timeval& tv) {
+	printf( "WINDOWS limitations. Function: makeStructTimeval" ) ;
 //    static jmethodID ctor = env->GetMethodID(JniConstants::structTimevalClass, "<init>", "(JJ)V");
 //    return env->NewObject(JniConstants::structTimevalClass, ctor,
 //            static_cast<jlong>(tv.tv_sec), static_cast<jlong>(tv.tv_usec));
@@ -334,6 +345,7 @@ static jobject makeStructTimeval(JNIEnv* env, const struct timeval& tv) {
 }
 
 static jobject makeStructUtsname(JNIEnv* env, const struct utsname& buf) {
+	printf( "WINDOWS limitations. Function: makeStructUtsname" ) ;
 //    TO_JAVA_STRING(sysname, buf.sysname);
 //    TO_JAVA_STRING(nodename, buf.nodename);
 //    TO_JAVA_STRING(release, buf.release);
@@ -347,6 +359,7 @@ static jobject makeStructUtsname(JNIEnv* env, const struct utsname& buf) {
 };
 
 static bool fillIfreq(JNIEnv* env, jstring javaInterfaceName, struct ifreq& req) {
+	printf( "WINDOWS limitations. Function: " ) ;
 //    ScopedUtfChars interfaceName(env, javaInterfaceName);
 //    if (interfaceName.c_str() == NULL) {
 //        return false;
@@ -358,6 +371,7 @@ static bool fillIfreq(JNIEnv* env, jstring javaInterfaceName, struct ifreq& req)
 }
 
 static bool fillInetSocketAddress(JNIEnv* env, jint rc, jobject javaInetSocketAddress, const sockaddr_storage* ss) {
+	printf( "WINDOWS limitations. Function: fillInetSocketAddress" ) ;
 //    if (rc == -1 || javaInetSocketAddress == NULL) {
 //        return true;
 //    }
@@ -375,6 +389,7 @@ static bool fillInetSocketAddress(JNIEnv* env, jint rc, jobject javaInetSocketAd
 }
 
 static jobject doStat(JNIEnv* env, jstring javaPath, bool isLstat) {
+	printf( "WINDOWS limitations. Function: doStat" ) ;
 //    ScopedUtfChars path(env, javaPath);
 //    if (path.c_str() == NULL) {
 //        return NULL;
@@ -432,6 +447,7 @@ static jobject doStat(JNIEnv* env, jstring javaPath, bool isLstat) {
 //};
 
 extern "C" jobject Java_libcore_io_Posix_accept(JNIEnv* env, jobject, jobject javaFd, jobject javaInetSocketAddress) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_accept" ) ;
 //    sockaddr_storage ss;
 //    socklen_t sl = sizeof(ss);
 //    memset(&ss, 0, sizeof(ss));
@@ -448,6 +464,7 @@ extern "C" jobject Java_libcore_io_Posix_accept(JNIEnv* env, jobject, jobject ja
 }
 
 extern "C" jboolean Java_libcore_io_Posix_access(JNIEnv* env, jobject, jstring javaPath, jint mode) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_access" ) ;
 //    ScopedUtfChars path(env, javaPath);
 //    if (path.c_str() == NULL) {
 //        return JNI_FALSE;
@@ -461,17 +478,19 @@ extern "C" jboolean Java_libcore_io_Posix_access(JNIEnv* env, jobject, jstring j
 }
 
 extern "C" void Java_libcore_io_Posix_bind(JNIEnv* env, jobject, jobject javaFd, jobject javaAddress, jint port) {
-//    sockaddr_storage ss;
-//    if (!inetAddressToSockaddr(env, javaAddress, port, &ss)) {
-//        return;
-//    }
-//    int fd;
-//    const sockaddr* sa = reinterpret_cast<const sockaddr*>(&ss);
-//    // RoboVM note: bind() on Darwin is picky about the the length specified. It has to match the family type.
-//    NET_FAILURE_RETRY("bind", bind(fd, sa, (sa->sa_family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)));
+	//printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_bind" ) ;
+    sockaddr_storage ss;
+    if (!inetAddressToSockaddr(env, javaAddress, port, &ss)) {
+        return;
+    }
+    int fd;
+    const sockaddr* sa = reinterpret_cast<const sockaddr*>(&ss);
+    // RoboVM note: bind() on Darwin is picky about the the length specified. It has to match the family type.
+    NET_FAILURE_RETRY("bind", bind(fd, sa, (sa->sa_family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)));
 }
 
 extern "C" void Java_libcore_io_Posix_chmod(JNIEnv* env, jobject, jstring javaPath, jint mode) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_chmod" ) ;
 //    ScopedUtfChars path(env, javaPath);
 //    if (path.c_str() == NULL) {
 //        return;
@@ -482,27 +501,28 @@ extern "C" void Java_libcore_io_Posix_chmod(JNIEnv* env, jobject, jstring javaPa
 extern "C" void Java_libcore_io_Posix_close(JNIEnv* env, jobject, jobject javaFd) {
     // Get the FileDescriptor's 'fd' field and clear it.
     // We need to do this before we can throw an IOException (http://b/3222087).
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    jniSetFileDescriptorOfFD(env, javaFd, -1);
-//
-//    // Even if close(2) fails with EINTR, the fd will have been closed.
-//    // Using TEMP_FAILURE_RETRY will either lead to EBADF or closing someone else's fd.
-//    // http://lkml.indiana.edu/hypermail/linux/kernel/0509.1/0877.html
-//    throwIfMinusOne(env, "close", close(fd));
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    jniSetFileDescriptorOfFD(env, javaFd, -1);
+
+    // Even if close(2) fails with EINTR, the fd will have been closed.
+    // Using TEMP_FAILURE_RETRY will either lead to EBADF or closing someone else's fd.
+    // http://lkml.indiana.edu/hypermail/linux/kernel/0509.1/0877.html
+    throwIfMinusOne(env, "close", close(fd));
 }
 
 extern "C" void Java_libcore_io_Posix_connect(JNIEnv* env, jobject, jobject javaFd, jobject javaAddress, jint port) {
-//    sockaddr_storage ss;
-//    if (!inetAddressToSockaddr(env, javaAddress, port, &ss)) {
-//        return;
-//    }
-//    int fd;
-//    const sockaddr* sa = reinterpret_cast<const sockaddr*>(&ss);
-//    // RoboVM note: connect() on Darwin is picky about the the length specified. It has to match the family type.
-//    NET_FAILURE_RETRY("connect", connect(fd, sa, (sa->sa_family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)));
+    sockaddr_storage ss;
+    if (!inetAddressToSockaddr(env, javaAddress, port, &ss)) {
+        return;
+    }
+    int fd;
+    const sockaddr* sa = reinterpret_cast<const sockaddr*>(&ss);
+    // RoboVM note: connect() on Darwin is picky about the the length specified. It has to match the family type.
+    NET_FAILURE_RETRY("connect", connect(fd, sa, (sa->sa_family == AF_INET6) ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)));
 }
 
 extern "C" jobject Java_libcore_io_Posix_dup(JNIEnv* env, jobject, jobject javaOldFd) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_dup" ) ;
 //    int oldFd = jniGetFDFromFileDescriptor(env, javaOldFd);
 //    int newFd = throwIfMinusOne(env, "dup", TEMP_FAILURE_RETRY(dup(oldFd)));
 //    return (newFd != -1) ? jniCreateFileDescriptor(env, newFd) : NULL;
@@ -510,6 +530,7 @@ extern "C" jobject Java_libcore_io_Posix_dup(JNIEnv* env, jobject, jobject javaO
 }
 
 extern "C" jobject Java_libcore_io_Posix_dup2(JNIEnv* env, jobject, jobject javaOldFd, jint newFd) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_dup2" ) ;
 //    int oldFd = jniGetFDFromFileDescriptor(env, javaOldFd);
 //    int fd = throwIfMinusOne(env, "dup2", TEMP_FAILURE_RETRY(dup2(oldFd, newFd)));
 //    return (fd != -1) ? jniCreateFileDescriptor(env, fd) : NULL;
@@ -517,24 +538,27 @@ extern "C" jobject Java_libcore_io_Posix_dup2(JNIEnv* env, jobject, jobject java
 }
 
 extern "C" jobjectArray Java_libcore_io_Posix_environ(JNIEnv* env, jobject) {
-//    extern char** environ; // Standard, but not in any header file.
-//    return toStringArray(env, environ);
+    extern char** environ; // Standard, but not in any header file.
+    return toStringArray(env, environ);
 	return NULL ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_fcntlVoid(JNIEnv* env, jobject, jobject javaFd, jint cmd) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_fcntlVoid" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    return throwIfMinusOne(env, "fcntl", TEMP_FAILURE_RETRY(fcntl(fd, cmd)));
 	return 0 ;
 }
 
 extern "C" jint Java_libcore_io_Posix_fcntlLong(JNIEnv* env, jobject, jobject javaFd, jint cmd, jlong arg) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_fcntlLong" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    return throwIfMinusOne(env, "fcntl", TEMP_FAILURE_RETRY(fcntl(fd, cmd, arg)));
 	return 0 ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_fcntlFlock(JNIEnv* env, jobject, jobject javaFd, jint cmd, jobject javaFlock) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_fcntlFlock" ) ;
 //    static jfieldID typeFid = env->GetFieldID(JniConstants::structFlockClass, "l_type", "S");
 //    static jfieldID whenceFid = env->GetFieldID(JniConstants::structFlockClass, "l_whence", "S");
 //    static jfieldID startFid = env->GetFieldID(JniConstants::structFlockClass, "l_start", "J");
@@ -563,11 +587,13 @@ return 0 ;
 }
 
 extern "C" void Java_libcore_io_Posix_fdatasync(JNIEnv* env, jobject, jobject javaFd) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_fdatasync" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    throwIfMinusOne(env, "fdatasync", TEMP_FAILURE_RETRY(fdatasync(fd)));
 }
 
 extern "C" jobject Java_libcore_io_Posix_fstat(JNIEnv* env, jobject, jobject javaFd) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_fstat" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    struct stat sb;
 //    int rc = TEMP_FAILURE_RETRY(fstat(fd, &sb));
@@ -580,6 +606,7 @@ extern "C" jobject Java_libcore_io_Posix_fstat(JNIEnv* env, jobject, jobject jav
 }
 
 extern "C" jobject Java_libcore_io_Posix_fstatfs(JNIEnv* env, jobject, jobject javaFd) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_fstatfs" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    struct statfs sb;
 //    int rc = TEMP_FAILURE_RETRY(fstatfs(fd, &sb));
@@ -591,12 +618,50 @@ extern "C" jobject Java_libcore_io_Posix_fstatfs(JNIEnv* env, jobject, jobject j
 	return NULL ; 
 }
 
+// From https://www.mail-archive.com/bug-gnulib@gnu.org/msg11472.html
+// See also http://groups.yahoo.com/neo/groups/mingw32/conversations/topics/1345
+int fsync (int fd)                                                                      
+{                                                                                   
+  HANDLE h = (HANDLE) _get_osfhandle (fd);                                          
+  DWORD err;                                                                        
+                                                                                    
+  if (h == INVALID_HANDLE_VALUE)                                                    
+    {                                                                               
+      errno = EBADF;                                                                
+      return -1;                                                                    
+    }                                                                               
+                                                                                    
+  if (!FlushFileBuffers (h))                                                        
+    {                                                                               
+      /* Translate some Windows errors into rough approximations of Unix            
+       * errors.  MSDN is useless as usual - in this case it doesn't                
+       * document the full range of errors.                                         
+       */                                                                           
+      err = GetLastError ();                                                        
+      switch (err)                                                                  
+       {                                                                            
+         /* eg. Trying to fsync a tty. */                                           
+       case ERROR_INVALID_HANDLE:                                                   
+         errno = EINVAL;                                                            
+         break;                                                                     
+                                                                                    
+       default:                                                                     
+         errno = EIO;                                                               
+       }                                                                            
+      return -1;                                                                    
+    }                                                                               
+                                                                                    
+  return 0;                                                                         
+}                                                                                   
+
+
 extern "C" void Java_libcore_io_Posix_fsync(JNIEnv* env, jobject, jobject javaFd) {
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    throwIfMinusOne(env, "fsync", TEMP_FAILURE_RETRY(fsync(fd)));
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    throwIfMinusOne(env, "fsync", TEMP_FAILURE_RETRY(fsync(fd)));
 }
 
 extern "C" void Java_libcore_io_Posix_ftruncate(JNIEnv* env, jobject, jobject javaFd, jlong length) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_ftruncate" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    throwIfMinusOne(env, "ftruncate", TEMP_FAILURE_RETRY(ftruncate64(fd, length)));
 }
@@ -607,6 +672,7 @@ extern "C" jstring Java_libcore_io_Posix_gai_1strerror(JNIEnv* env, jobject, jin
 }
 
 extern "C" jobjectArray Java_libcore_io_Posix_getaddrinfo(JNIEnv* env, jobject, jstring javaNode, jobject javaHints) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getaddrinfo" ) ;
 //    ScopedUtfChars node(env, javaNode);
 //    if (node.c_str() == NULL) {
 //        return NULL;
@@ -675,30 +741,33 @@ extern "C" jobjectArray Java_libcore_io_Posix_getaddrinfo(JNIEnv* env, jobject, 
 }
 
 extern "C" jint Java_libcore_io_Posix_getegid(JNIEnv*, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getegid" ) ;
 //    return getegid();
 	return 0 ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_geteuid(JNIEnv*, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_geteuid" ) ;
 //    return geteuid();
 	return 0 ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_getgid(JNIEnv*, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getgid" ) ;
 //    return getgid();
 	return 0 ; 
 }
 
 extern "C" jstring Java_libcore_io_Posix_getenv(JNIEnv* env, jobject, jstring javaName) {
-//    ScopedUtfChars name(env, javaName);
-//    if (name.c_str() == NULL) {
-//        return NULL;
-//    }
-//    return env->NewStringUTF(getenv(name.c_str()));
-	return NULL ; 
+    ScopedUtfChars name(env, javaName);
+    if (name.c_str() == NULL) {
+        return NULL;
+    }
+    return env->NewStringUTF(getenv(name.c_str()));
 }
 
 extern "C" jstring Java_libcore_io_Posix_getnameinfo(JNIEnv* env, jobject, jobject javaAddress, jint flags) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getnameinfo" ) ;
 //    sockaddr_storage ss;
 //    if (!inetAddressToSockaddrVerbatim(env, javaAddress, 0, &ss)) {
 //        return NULL;
@@ -720,16 +789,18 @@ extern "C" jstring Java_libcore_io_Posix_getnameinfo(JNIEnv* env, jobject, jobje
 }
 
 extern "C" jint Java_libcore_io_Posix_getpid(JNIEnv*, jobject) {
-//    return getpid();
-	return 0 ; 
+    return getpid();
 }
 
 extern "C" jint Java_libcore_io_Posix_getppid(JNIEnv*, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getppid" ) ;
+// DIAG does not exist
 //    return getppid();
 	return 0 ; 
 }
 
 extern "C" jobject Java_libcore_io_Posix_getpwnam(JNIEnv* env, jobject, jstring javaName) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getpwnam" ) ;
 //    ScopedUtfChars name(env, javaName);
 //    if (name.c_str() == NULL) {
 //        return NULL;
@@ -740,26 +811,28 @@ extern "C" jobject Java_libcore_io_Posix_getpwnam(JNIEnv* env, jobject, jstring 
 }
 
 extern "C" jobject Java_libcore_io_Posix_getpwuid(JNIEnv* env, jobject, jint uid) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getpwuid" ) ;
 //    return Passwd(env).getpwuid(uid);
 		return NULL ; 
 }
 
 extern "C" jobject Java_libcore_io_Posix_getsockname(JNIEnv* env, jobject, jobject javaFd) {
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    sockaddr_storage ss;
-//    sockaddr* sa = reinterpret_cast<sockaddr*>(&ss);
-//    socklen_t byteCount = sizeof(ss);
-//    memset(&ss, 0, byteCount);
-//    int rc = TEMP_FAILURE_RETRY(getsockname(fd, sa, &byteCount));
-//    if (rc == -1) {
-//        throwErrnoException(env, "getsockname");
-//        return NULL;
-//    }
-//    return makeSocketAddress(env, &ss);
-		return NULL ; 
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    sockaddr_storage ss;
+    sockaddr* sa = reinterpret_cast<sockaddr*>(&ss);
+    socklen_t byteCount = sizeof(ss);
+    memset(&ss, 0, byteCount);
+    int rc = TEMP_FAILURE_RETRY(getsockname(fd, sa, &byteCount));
+    if (rc == -1) {
+        throwErrnoException(env, "getsockname");
+        return NULL;
+    }
+    return makeSocketAddress(env, &ss);
+//		return NULL ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_getsockoptByte(JNIEnv* env, jobject, jobject javaFd, jint level, jint option) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getsockoptByte" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    u_char result = 0;
 //    socklen_t size = sizeof(result);
@@ -769,6 +842,7 @@ extern "C" jint Java_libcore_io_Posix_getsockoptByte(JNIEnv* env, jobject, jobje
 }
 
 extern "C" jobject Java_libcore_io_Posix_getsockoptInAddr(JNIEnv* env, jobject, jobject javaFd, jint level, jint option) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getsockoptInAddr" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    sockaddr_storage ss;
 //    memset(&ss, 0, sizeof(ss));
@@ -785,6 +859,7 @@ extern "C" jobject Java_libcore_io_Posix_getsockoptInAddr(JNIEnv* env, jobject, 
 }
 
 extern "C" jint Java_libcore_io_Posix_getsockoptInt(JNIEnv* env, jobject, jobject javaFd, jint level, jint option) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getsockoptInt" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    jint result = 0;
 //    socklen_t size = sizeof(result);
@@ -794,6 +869,7 @@ extern "C" jint Java_libcore_io_Posix_getsockoptInt(JNIEnv* env, jobject, jobjec
 }
 
 extern "C" jobject Java_libcore_io_Posix_getsockoptLinger(JNIEnv* env, jobject, jobject javaFd, jint level, jint option) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getsockoptLinger" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    struct linger l;
 //    socklen_t size = sizeof(l);
@@ -808,6 +884,7 @@ extern "C" jobject Java_libcore_io_Posix_getsockoptLinger(JNIEnv* env, jobject, 
 }
 
 extern "C" jobject Java_libcore_io_Posix_getsockoptTimeval(JNIEnv* env, jobject, jobject javaFd, jint level, jint option) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getsockoptTimeval" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    struct timeval tv;
 //    socklen_t size = sizeof(tv);
@@ -821,12 +898,17 @@ extern "C" jobject Java_libcore_io_Posix_getsockoptTimeval(JNIEnv* env, jobject,
 		return NULL ; 
 }
 
+
+
 extern "C" jint Java_libcore_io_Posix_getuid(JNIEnv*, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_getuid" ) ;
+// DIAG
 //    return getuid();
 	return 0 ; 
 }
 
 extern "C" jstring Java_libcore_io_Posix_if_1indextoname(JNIEnv* env, jobject, jint index) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_if_1indextoname" ) ;
 //    char buf[IF_NAMESIZE];
 //    char* name = if_indextoname(index, buf);
 //    // if_indextoname(3) returns NULL on failure, which will come out of NewStringUTF unscathed.
@@ -836,6 +918,7 @@ extern "C" jstring Java_libcore_io_Posix_if_1indextoname(JNIEnv* env, jobject, j
 }
 
 extern "C" jobject Java_libcore_io_Posix_inet_1pton(JNIEnv* env, jobject, jint family, jstring javaName) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_inet_1pton" ) ;
 //    ScopedUtfChars name(env, javaName);
 //    if (name.c_str() == NULL) {
 //        return NULL;
@@ -853,6 +936,7 @@ extern "C" jobject Java_libcore_io_Posix_inet_1pton(JNIEnv* env, jobject, jint f
 }
 
 extern "C" jobject Java_libcore_io_Posix_ioctlInetAddress(JNIEnv* env, jobject, jobject javaFd, jint cmd, jstring javaInterfaceName) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_ioctlInetAddress" ) ;
 //    struct ifreq req;
 //    if (!fillIfreq(env, javaInterfaceName, req)) {
 //        return NULL;
@@ -867,6 +951,7 @@ extern "C" jobject Java_libcore_io_Posix_ioctlInetAddress(JNIEnv* env, jobject, 
 }
 
 extern "C" jint Java_libcore_io_Posix_ioctlInt(JNIEnv* env, jobject, jobject javaFd, jint cmd, jobject javaArg) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_ioctlInt" ) ;
 //    // This is complicated because ioctls may return their result by updating their argument
 //    // or via their return value, so we need to support both.
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
@@ -881,32 +966,38 @@ extern "C" jint Java_libcore_io_Posix_ioctlInt(JNIEnv* env, jobject, jobject jav
 }
 
 extern "C" jboolean Java_libcore_io_Posix_isatty(JNIEnv* env, jobject, jobject javaFd) {
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    return TEMP_FAILURE_RETRY(isatty(fd)) == 0;
-	return false ; 
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    return TEMP_FAILURE_RETRY(isatty(fd)) == 0;
 }
 
 extern "C" void Java_libcore_io_Posix_kill(JNIEnv* env, jobject, jint pid, jint sig) {
-//    throwIfMinusOne(env, "kill", TEMP_FAILURE_RETRY(kill(pid, sig)));
+    //throwIfMinusOne(env, "kill", TEMP_FAILURE_RETRY(kill(pid, sig)));
+	UINT uExitCode ; 
+	HANDLE hpid = (HANDLE) pid ; 
+    throwIfMinusOne(env, "kill", TEMP_FAILURE_RETRY(TerminateProcess(hpid, uExitCode)));
+	// TODO ? Use SafeTerminateProcess instead ??
 }
 
 extern "C" void Java_libcore_io_Posix_listen(JNIEnv* env, jobject, jobject javaFd, jint backlog) {
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    throwIfMinusOne(env, "listen", TEMP_FAILURE_RETRY(listen(fd, backlog)));
+   int fd = jniGetFDFromFileDescriptor(env, javaFd);
+   throwIfMinusOne(env, "listen", TEMP_FAILURE_RETRY(listen(fd, backlog)));
 }
 
 extern "C" jlong Java_libcore_io_Posix_lseek(JNIEnv* env, jobject, jobject javaFd, jlong offset, jint whence) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_lseek" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    return throwIfMinusOne(env, "lseek", TEMP_FAILURE_RETRY(lseek64(fd, offset, whence)));
 	return 0 ; 
 }
 
 extern "C" jobject Java_libcore_io_Posix_lstat(JNIEnv* env, jobject, jstring javaPath) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_lstat" ) ;
 //    return doStat(env, javaPath, true);
 		return NULL ; 
 }
 
 extern "C" void Java_libcore_io_Posix_mincore(JNIEnv* env, jobject, jlong address, jlong byteCount, jbyteArray javaVector) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_mincore" ) ;
 //    ScopedByteArrayRW vector(env, javaVector);
 //    if (vector.get() == NULL) {
 //        return;
@@ -922,19 +1013,23 @@ extern "C" void Java_libcore_io_Posix_mincore(JNIEnv* env, jobject, jlong addres
 }
 
 extern "C" void Java_libcore_io_Posix_mkdir(JNIEnv* env, jobject, jstring javaPath, jint mode) {
-//    ScopedUtfChars path(env, javaPath);
-//    if (path.c_str() == NULL) {
-//        return;
-//    }
-//    throwIfMinusOne(env, "mkdir", TEMP_FAILURE_RETRY(mkdir(path.c_str(), mode)));
+    ScopedUtfChars path(env, javaPath);
+    if (path.c_str() == NULL) {
+        return;
+    }
+    //throwIfMinusOne(env, "mkdir",_mkdir(path.c_str()));
+    throwIfMinusOne(env, "mkdir", TEMP_FAILURE_RETRY(mkdir(path.c_str())));
 }
 
 extern "C" void Java_libcore_io_Posix_mlock(JNIEnv* env, jobject, jlong address, jlong byteCount) {
-//    void* ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(address));
-//    throwIfMinusOne(env, "mlock", TEMP_FAILURE_RETRY(mlock(ptr, byteCount)));
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_mlock" ) ;
+    // DIAG
+	//void* ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(address));
+    //throwIfMinusOne(env, "mlock", TEMP_FAILURE_RETRY(mlock(ptr, byteCount)));
 }
 
 extern "C" jlong Java_libcore_io_Posix_mmap(JNIEnv* env, jobject, jlong address, jlong byteCount, jint prot, jint flags, jobject javaFd, jlong offset) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_mmap" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    void* suggestedPtr = reinterpret_cast<void*>(static_cast<uintptr_t>(address));
 //    void* ptr = mmap(suggestedPtr, byteCount, prot, flags, fd, offset);
@@ -946,31 +1041,35 @@ return 0 ;
 }
 
 extern "C" void Java_libcore_io_Posix_msync(JNIEnv* env, jobject, jlong address, jlong byteCount, jint flags) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_msync" ) ;
 //    void* ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(address));
 //    throwIfMinusOne(env, "msync", TEMP_FAILURE_RETRY(msync(ptr, byteCount, flags)));
 }
 
 extern "C" void Java_libcore_io_Posix_munlock(JNIEnv* env, jobject, jlong address, jlong byteCount) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_munlock" ) ;
 //    void* ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(address));
 //    throwIfMinusOne(env, "munlock", TEMP_FAILURE_RETRY(munlock(ptr, byteCount)));
 }
 
 extern "C" void Java_libcore_io_Posix_munmap(JNIEnv* env, jobject, jlong address, jlong byteCount) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_munmap" ) ;
 //    void* ptr = reinterpret_cast<void*>(static_cast<uintptr_t>(address));
 //    throwIfMinusOne(env, "munmap", TEMP_FAILURE_RETRY(munmap(ptr, byteCount)));
 }
 
 extern "C" jobject Java_libcore_io_Posix_open(JNIEnv* env, jobject, jstring javaPath, jint flags, jint mode) {
-//    ScopedUtfChars path(env, javaPath);
-//    if (path.c_str() == NULL) {
-//        return NULL;
-//    }
-//    int fd = throwIfMinusOne(env, "open", TEMP_FAILURE_RETRY(open(path.c_str(), flags, mode)));
-//    return fd != -1 ? jniCreateFileDescriptor(env, fd) : NULL;
-		return NULL ; 
+    ScopedUtfChars path(env, javaPath);
+    if (path.c_str() == NULL) {
+        return NULL;
+    }
+    int fd = throwIfMinusOne(env, "open", TEMP_FAILURE_RETRY(open(path.c_str(), flags, mode)));
+//    int fd = throwIfMinusOne(env, "open", open(path.c_str(), flags, mode));
+    return fd != -1 ? jniCreateFileDescriptor(env, fd) : NULL;
 }
 
 extern "C" jobjectArray Java_libcore_io_Posix_pipe(JNIEnv* env, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_pipe" ) ;
 //    int fds[2];
 //    throwIfMinusOne(env, "pipe", TEMP_FAILURE_RETRY(pipe(&fds[0])));
 //    jobjectArray result = env->NewObjectArray(2, JniConstants::fileDescriptorClass, NULL);
@@ -992,6 +1091,7 @@ extern "C" jobjectArray Java_libcore_io_Posix_pipe(JNIEnv* env, jobject) {
 }
 
 extern "C" jint Java_libcore_io_Posix_poll(JNIEnv* env, jobject, jobjectArray javaStructs, jint timeoutMs) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_poll" ) ;
 //    static jfieldID fdFid = env->GetFieldID(JniConstants::structPollfdClass, "fd", "Ljava/io/FileDescriptor;");
 //    static jfieldID eventsFid = env->GetFieldID(JniConstants::structPollfdClass, "events", "S");
 //    static jfieldID reventsFid = env->GetFieldID(JniConstants::structPollfdClass, "revents", "S");
@@ -1041,18 +1141,43 @@ extern "C" jint Java_libcore_io_Posix_poll(JNIEnv* env, jobject, jobjectArray ja
 //    return rc;
 	return 0 ; 
 }
+// FROM http://stackoverflow.com/questions/766477/are-there-equivalents-to-pread-on-different-platforms
+// HAS BUGS
+// See also this : http://git.661346.n2.nabble.com/Attempt-to-fix-pread-threading-issue-on-Cygwin-and-MinGW-td7562196.html
+unsigned int FakePRead(int fd, void *to, std::size_t size, jlong offset) {
+  // size_t might be 64-bit.  DWORD is always 32.
+  const std::size_t kMax = static_cast<std::size_t>(1UL << 31);
+  DWORD reading = static_cast<DWORD>(std::min<std::size_t>(kMax, size));
+  DWORD ret;
+  OVERLAPPED overlapped;
+  memset(&overlapped, 0, sizeof(OVERLAPPED));
+  overlapped.Offset = static_cast<DWORD>(offset);
+  overlapped.OffsetHigh = static_cast<DWORD>(offset >> 32);
+  if (!ReadFile((HANDLE)_get_osfhandle(fd), to, reading, &ret, &overlapped)) {
+    // TODO: set errno to something?
+    return -1;
+  }
+  // Note the limit to 1 << 31 before.
+  return static_cast<unsigned int>(ret);
+}
 
 extern "C" jint Java_libcore_io_Posix_preadBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount, jlong offset) {
+	printf( "WINDOWS bad implementation. Function: Java_libcore_io_Posix_preadBytes" ) ;
+// TODO DIAG pread64 not found -> pread 
+// Niklas could you review this?
     ScopedBytesRW bytes(env, javaBytes);
     if (bytes.get() == NULL) {
         return -1;
     }
     int fd = jniGetFDFromFileDescriptor(env, javaFd);
-    return throwIfMinusOne(env, "pread", TEMP_FAILURE_RETRY(pread64(fd, bytes.get() + byteOffset, byteCount, offset)));
+	return throwIfMinusOne(env, "pread", TEMP_FAILURE_RETRY(FakePRead(fd, bytes.get() + byteOffset, byteCount, offset)));
+//	return throwIfMinusOne(env, "pread", FakePRead(fd, bytes.get() + byteOffset, byteCount, offset));
+
 	//return 0 ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_pwriteBytes(JNIEnv* env, jobject, jobject javaFd, jbyteArray javaBytes, jint byteOffset, jint byteCount, jlong offset) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_pwriteBytes" ) ;
 //    ScopedBytesRO bytes(env, javaBytes);
 //    if (bytes.get() == NULL) {
 //        return -1;
@@ -1063,70 +1188,74 @@ extern "C" jint Java_libcore_io_Posix_pwriteBytes(JNIEnv* env, jobject, jobject 
 }
 
 extern "C" jint Java_libcore_io_Posix_readBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount) {
-//    ScopedBytesRW bytes(env, javaBytes);
-//    if (bytes.get() == NULL) {
-//        return -1;
-//    }
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    return throwIfMinusOne(env, "read", TEMP_FAILURE_RETRY(read(fd, bytes.get() + byteOffset, byteCount)));
-	return 0 ; 
+    ScopedBytesRW bytes(env, javaBytes);
+    if (bytes.get() == NULL) {
+        return -1;
+    }
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    return throwIfMinusOne(env, "read", TEMP_FAILURE_RETRY(read(fd, bytes.get() + byteOffset, byteCount)));
 }
 
 extern "C" jint Java_libcore_io_Posix_readv(JNIEnv* env, jobject, jobject javaFd, jobjectArray buffers, jintArray offsets, jintArray byteCounts) {
-//    IoVec<ScopedBytesRW> ioVec(env, env->GetArrayLength(buffers));
-//    if (!ioVec.init(buffers, offsets, byteCounts)) {
-//        return -1;
-//    }
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    return throwIfMinusOne(env, "readv", TEMP_FAILURE_RETRY(readv(fd, ioVec.get(), ioVec.size())));
-	return 0 ; 
+    IoVec<ScopedBytesRW> ioVec(env, env->GetArrayLength(buffers));
+    if (!ioVec.init(buffers, offsets, byteCounts)) {
+        return -1;
+    }
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    return throwIfMinusOne(env, "readv", TEMP_FAILURE_RETRY(readv(fd, ioVec.get(), ioVec.size())));
 }
 
 extern "C" jint Java_libcore_io_Posix_recvfromBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount, jint flags, jobject javaInetSocketAddress) {
-//    ScopedBytesRW bytes(env, javaBytes);
-//    if (bytes.get() == NULL) {
-//        return -1;
-//    }
-//    sockaddr_storage ss;
-//    socklen_t sl = sizeof(ss);
-//    memset(&ss, 0, sizeof(ss));
-//    int fd;
-//    sockaddr* from = (javaInetSocketAddress != NULL) ? reinterpret_cast<sockaddr*>(&ss) : NULL;
-//    socklen_t* fromLength = (javaInetSocketAddress != NULL) ? &sl : 0;
-//    jint recvCount = NET_FAILURE_RETRY("recvfrom", recvfrom(fd, bytes.get() + byteOffset, byteCount, flags, from, fromLength));
-//    fillInetSocketAddress(env, recvCount, javaInetSocketAddress, &ss);
-//    return recvCount;
-	return 0 ; 
+    ScopedBytesRW bytes(env, javaBytes);
+    if (bytes.get() == NULL) {
+        return -1;
+    }
+    sockaddr_storage ss;
+    socklen_t sl = sizeof(ss);
+    memset(&ss, 0, sizeof(ss));
+    int fd;
+    sockaddr* from = (javaInetSocketAddress != NULL) ? reinterpret_cast<sockaddr*>(&ss) : NULL;
+    socklen_t* fromLength = (javaInetSocketAddress != NULL) ? &sl : 0;
+	// FIXME : niklas review this, please
+	char* bits = (char*)bytes.get();
+	char* res = bits + byteOffset ; 
+    jint recvCount = NET_FAILURE_RETRY("recvfrom", recvfrom(fd, res, byteCount, flags, from, fromLength));
+    // ORIGINAL jint recvCount = NET_FAILURE_RETRY("recvfrom", recvfrom(fd, bytes.get() + byteOffset, byteCount, flags, from, fromLength));
+    fillInetSocketAddress(env, recvCount, javaInetSocketAddress, &ss);
+    return recvCount;
+	//return 0 ; 
 }
 
 extern "C" void Java_libcore_io_Posix_remove(JNIEnv* env, jobject, jstring javaPath) {
-//    ScopedUtfChars path(env, javaPath);
-//    if (path.c_str() == NULL) {
-//        return;
-//    }
-//    throwIfMinusOne(env, "remove", TEMP_FAILURE_RETRY(remove(path.c_str())));
+    ScopedUtfChars path(env, javaPath);
+    if (path.c_str() == NULL) {
+        return;
+    }
+    throwIfMinusOne(env, "remove", TEMP_FAILURE_RETRY(remove(path.c_str())));
 }
 
 extern "C" void Java_libcore_io_Posix_rename(JNIEnv* env, jobject, jstring javaOldPath, jstring javaNewPath) {
-//    ScopedUtfChars oldPath(env, javaOldPath);
-//    if (oldPath.c_str() == NULL) {
-//        return;
-//    }
-//    ScopedUtfChars newPath(env, javaNewPath);
-//    if (newPath.c_str() == NULL) {
-//        return;
-//    }
-//    throwIfMinusOne(env, "rename", TEMP_FAILURE_RETRY(rename(oldPath.c_str(), newPath.c_str())));
+    ScopedUtfChars oldPath(env, javaOldPath);
+    if (oldPath.c_str() == NULL) {
+        return;
+    }
+    ScopedUtfChars newPath(env, javaNewPath);
+    if (newPath.c_str() == NULL) {
+        return;
+    }
+    throwIfMinusOne(env, "rename", TEMP_FAILURE_RETRY(rename(oldPath.c_str(), newPath.c_str())));
 }
 
 extern "C" jlong Java_libcore_io_Posix_sendfile(JNIEnv* env, jobject, jobject javaOutFd, jobject javaInFd, jobject javaOffset, jlong byteCount) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_sendfile" ) ;
+// DIAG not found
 //    int outFd = jniGetFDFromFileDescriptor(env, javaOutFd);
 //    int inFd = jniGetFDFromFileDescriptor(env, javaInFd);
 //    static jfieldID valueFid = env->GetFieldID(JniConstants::mutableLongClass, "value", "J");
 //    off_t offset = 0;
 //    off_t* offsetPtr = NULL;
 //    if (javaOffset != NULL) {
-//        // TODO: fix bionic so we can have a 64-bit off_t!
+//         TODO: fix bionic so we can have a 64-bit off_t!
 //        offset = env->GetLongField(javaOffset, valueFid);
 //        offsetPtr = &offset;
 //    }
@@ -1139,6 +1268,7 @@ return 0 ;
 }
 
 extern "C" jint Java_libcore_io_Posix_sendtoBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount, jint flags, jobject javaInetAddress, jint port) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_sendtoBytes" ) ;
 //    ScopedBytesRO bytes(env, javaBytes);
 //    if (bytes.get() == NULL) {
 //        return -1;
@@ -1155,24 +1285,29 @@ extern "C" jint Java_libcore_io_Posix_sendtoBytes(JNIEnv* env, jobject, jobject 
 }
 
 extern "C" void Java_libcore_io_Posix_setegid(JNIEnv* env, jobject, jint egid) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setegid" ) ;
 //    throwIfMinusOne(env, "setegid", TEMP_FAILURE_RETRY(setegid(egid)));
 }
 
 extern "C" void Java_libcore_io_Posix_seteuid(JNIEnv* env, jobject, jint euid) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_seteuid" ) ;
 //    throwIfMinusOne(env, "seteuid", TEMP_FAILURE_RETRY(seteuid(euid)));
 }
 
 extern "C" void Java_libcore_io_Posix_setgid(JNIEnv* env, jobject, jint gid) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setgid" ) ;
 //    throwIfMinusOne(env, "setgid", TEMP_FAILURE_RETRY(setgid(gid)));
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptByte(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jint value) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptByte" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    u_char byte = value;
 //    throwIfMinusOne(env, "setsockopt", TEMP_FAILURE_RETRY(setsockopt(fd, level, option, &byte, sizeof(byte))));
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptIfreq(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jstring javaInterfaceName) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptIfreq" ) ;
 //    struct ifreq req;
 //    if (!fillIfreq(env, javaInterfaceName, req)) {
 //        return;
@@ -1182,11 +1317,13 @@ extern "C" void Java_libcore_io_Posix_setsockoptIfreq(JNIEnv* env, jobject, jobj
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptInt(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jint value) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptInt" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    throwIfMinusOne(env, "setsockopt", TEMP_FAILURE_RETRY(setsockopt(fd, level, option, &value, sizeof(value))));
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptIpMreqn(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jint value) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptIpMreqn" ) ;
 //    ip_mreqn req;
 //    memset(&req, 0, sizeof(req));
 //    req.imr_ifindex = value;
@@ -1195,6 +1332,7 @@ extern "C" void Java_libcore_io_Posix_setsockoptIpMreqn(JNIEnv* env, jobject, jo
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptGroupReq(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jobject javaGroupReq) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptGroupReq" ) ;
 //    struct group_req req;
 //    memset(&req, 0, sizeof(req));
 //
@@ -1226,6 +1364,7 @@ extern "C" void Java_libcore_io_Posix_setsockoptGroupReq(JNIEnv* env, jobject, j
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptLinger(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jobject javaLinger) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptLinger" ) ;
 //    static jfieldID lOnoffFid = env->GetFieldID(JniConstants::structLingerClass, "l_onoff", "I");
 //    static jfieldID lLingerFid = env->GetFieldID(JniConstants::structLingerClass, "l_linger", "I");
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
@@ -1236,6 +1375,7 @@ extern "C" void Java_libcore_io_Posix_setsockoptLinger(JNIEnv* env, jobject, job
 }
 
 extern "C" void Java_libcore_io_Posix_setsockoptTimeval(JNIEnv* env, jobject, jobject javaFd, jint level, jint option, jobject javaTimeval) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setsockoptTimeval" ) ;
 //    static jfieldID tvSecFid = env->GetFieldID(JniConstants::structTimevalClass, "tv_sec", "J");
 //    static jfieldID tvUsecFid = env->GetFieldID(JniConstants::structTimevalClass, "tv_usec", "J");
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
@@ -1246,24 +1386,28 @@ extern "C" void Java_libcore_io_Posix_setsockoptTimeval(JNIEnv* env, jobject, jo
 }
 
 extern "C" void Java_libcore_io_Posix_setuid(JNIEnv* env, jobject, jint uid) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_setuid" ) ;
 //    throwIfMinusOne(env, "setuid", TEMP_FAILURE_RETRY(setuid(uid)));
 }
 
 extern "C" void Java_libcore_io_Posix_shutdown(JNIEnv* env, jobject, jobject javaFd, jint how) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_shutdown" ) ;
 //    int fd = jniGetFDFromFileDescriptor(env, javaFd);
 //    throwIfMinusOne(env, "shutdown", TEMP_FAILURE_RETRY(shutdown(fd, how)));
 }
 
 extern "C" jobject Java_libcore_io_Posix_socket(JNIEnv* env, jobject, jint domain, jint type, jint protocol) {
-//    int fd = throwIfMinusOne(env, "socket", TEMP_FAILURE_RETRY(socket(domain, type, protocol)));
-//    return fd != -1 ? jniCreateFileDescriptor(env, fd) : NULL;
+    int fd = throwIfMinusOne(env, "socket", TEMP_FAILURE_RETRY(socket(domain, type, protocol)));
+    return fd != -1 ? jniCreateFileDescriptor(env, fd) : NULL;
 }
 
 extern "C" jobject Java_libcore_io_Posix_stat(JNIEnv* env, jobject, jstring javaPath) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_stat" ) ;
 //    return doStat(env, javaPath, false);
 }
    
 extern "C" jobject Java_libcore_io_Posix_statfs(JNIEnv* env, jobject, jstring javaPath) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_statfs" ) ;
 //    ScopedUtfChars path(env, javaPath);
 //    if (path.c_str() == NULL) {
 //        return NULL;
@@ -1278,13 +1422,13 @@ extern "C" jobject Java_libcore_io_Posix_statfs(JNIEnv* env, jobject, jstring ja
 }
 
 extern "C" jstring Java_libcore_io_Posix_strerror(JNIEnv* env, jobject, jint errnum) {
-//    char buffer[BUFSIZ];
-//    const char* message = jniStrError(errnum, buffer, sizeof(buffer));
-//    return env->NewStringUTF(message);
-	return NULL ; 
+    char buffer[BUFSIZ];
+    const char* message = jniStrError(errnum, buffer, sizeof(buffer));
+    return env->NewStringUTF(message);
 }
 
 extern "C" void Java_libcore_io_Posix_symlink(JNIEnv* env, jobject, jstring javaOldPath, jstring javaNewPath) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_symlink" ) ;
 //    ScopedUtfChars oldPath(env, javaOldPath);
 //    if (oldPath.c_str() == NULL) {
 //        return;
@@ -1297,6 +1441,7 @@ extern "C" void Java_libcore_io_Posix_symlink(JNIEnv* env, jobject, jstring java
 }
 
 extern "C" jlong Java_libcore_io_Posix_sysconf(JNIEnv* env, jobject, jint name) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_sysconf" ) ;
 //    // Since -1 is a valid result from sysconf(3), detecting failure is a little more awkward.
 //    errno = 0;
 //    long result = sysconf(name);
@@ -1308,6 +1453,7 @@ extern "C" jlong Java_libcore_io_Posix_sysconf(JNIEnv* env, jobject, jint name) 
 }
 
 extern "C" jobject Java_libcore_io_Posix_uname(JNIEnv* env, jobject) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_uname" ) ;
 //    struct utsname buf;
 //    if (TEMP_FAILURE_RETRY(uname(&buf)) == -1) {
 //        return NULL; // Can't happen.
@@ -1317,6 +1463,7 @@ extern "C" jobject Java_libcore_io_Posix_uname(JNIEnv* env, jobject) {
 }
 
 extern "C" jint Java_libcore_io_Posix_waitpid(JNIEnv* env, jobject, jint pid, jobject javaStatus, jint options) {
+	printf( "WINDOWS limitations. Function: Java_libcore_io_Posix_waitpid" ) ;
 //    int status;
 //    int rc = throwIfMinusOne(env, "waitpid", TEMP_FAILURE_RETRY(waitpid(pid, &status, options)));
 //    if (rc != -1) {
@@ -1328,22 +1475,20 @@ extern "C" jint Java_libcore_io_Posix_waitpid(JNIEnv* env, jobject, jint pid, jo
 }
 
 extern "C" jint Java_libcore_io_Posix_writeBytes(JNIEnv* env, jobject, jobject javaFd, jbyteArray javaBytes, jint byteOffset, jint byteCount) {
-//    ScopedBytesRO bytes(env, javaBytes);
-//    if (bytes.get() == NULL) {
-//        return -1;
-//    }
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    return throwIfMinusOne(env, "write", TEMP_FAILURE_RETRY(write(fd, bytes.get() + byteOffset, byteCount)));
-	return 0 ; 
+    ScopedBytesRO bytes(env, javaBytes);
+    if (bytes.get() == NULL) {
+        return -1;
+    }
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    return throwIfMinusOne(env, "write", TEMP_FAILURE_RETRY(write(fd, bytes.get() + byteOffset, byteCount)));
 }
 
 extern "C" jint Java_libcore_io_Posix_writev(JNIEnv* env, jobject, jobject javaFd, jobjectArray buffers, jintArray offsets, jintArray byteCounts) {
-//    IoVec<ScopedBytesRO> ioVec(env, env->GetArrayLength(buffers));
-//    if (!ioVec.init(buffers, offsets, byteCounts)) {
-//        return -1;
-//    }
-//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-//    return throwIfMinusOne(env, "writev", TEMP_FAILURE_RETRY(writev(fd, ioVec.get(), ioVec.size())));
-	return 0 ; 
+    IoVec<ScopedBytesRO> ioVec(env, env->GetArrayLength(buffers));
+    if (!ioVec.init(buffers, offsets, byteCounts)) {
+        return -1;
+    }
+    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+    return throwIfMinusOne(env, "writev", TEMP_FAILURE_RETRY(writev(fd, ioVec.get(), ioVec.size())));
 }
 
