@@ -79,6 +79,12 @@ void AsynchronousSocketCloseMonitor::init() {
 }
 
 void AsynchronousSocketCloseMonitor::signalBlockedThreads(int fd) {
+// CARL TODO Dwarf ?
+// Errors 
+// \robovm\carl\robovm-0.0.8\lib\vm\windows\x86/librobovm-rt.a(AsynchronousSocketCloseMonitor.cpp.obj):AsynchronousSocketCloseMonitor.cpp:(.text$_ZN30AsynchronousSocketCloseMonitor20signalBlockedThreadsEi+0x12): undefined reference to `__gxx_personality_sj0'
+// \robovm\carl\robovm-0.0.8\lib\vm\windows\x86/librobovm-rt.a(AsynchronousSocketCloseMonitor.cpp.obj):AsynchronousSocketCloseMonitor.cpp:(.text$_ZN30AsynchronousSocketCloseMonitorC2Ei+0x15): undefined reference to `__gxx_personality_sj0'
+// See : http://stackoverflow.com/questions/7751640/undefined-reference-to-gxx-personality-sj0
+#ifndef WINDOWS
     ScopedPthreadMutexLock lock(&blockedThreadListMutex);
     for (AsynchronousSocketCloseMonitor* it = blockedThreadList; it != NULL; it = it->mNext) {
         if (it->mFd == fd) {
@@ -86,6 +92,7 @@ void AsynchronousSocketCloseMonitor::signalBlockedThreads(int fd) {
             // Keep going, because there may be more than one thread...
         }
     }
+#endif
 }
 
 AsynchronousSocketCloseMonitor::AsynchronousSocketCloseMonitor(int fd) {

@@ -73,6 +73,17 @@
 extern "C" {
 #endif
 
+// CARL. See http://sourceforge.net/mailarchive/forum.php?thread_name=AANLkTinrq34UOHsUS7mZt82wepv_SvttNedd4xwm-JqU%40mail.gmail.com&forum_name=mingw-w64-public
+#if defined(OPENSSL_SYS_WINDOWS)
+#include <windows.h>
+#undef X509_NAME
+#undef X509_EXTENSIONS
+#undef X509_CERT_PAIR
+#undef PKCS7_ISSUER_AND_SERIAL
+#undef OCSP_REQUEST
+#undef OCSP_RESPONSE
+#endif
+
 /* Various flags and values */
 
 #define OCSP_DEFAULT_NONCE_LENGTH	16

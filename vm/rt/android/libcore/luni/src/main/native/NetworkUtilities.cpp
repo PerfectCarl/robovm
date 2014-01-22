@@ -43,7 +43,11 @@
 #endif
 
 jobject sockaddrToInetAddress(JNIEnv* env, const sockaddr_storage* ss, jint* port) {
-    // Convert IPv4-mapped IPv6 addresses to IPv4 addresses.
+  // CARL network TODO DWARF 
+#ifdef WINDOWS
+	return NULL ;
+#else
+	// Convert IPv4-mapped IPv6 addresses to IPv4 addresses.
     // The RI states "Java will never return an IPv4-mapped address".
     sockaddr_storage tmp;
     memset(&tmp, 0, sizeof(tmp));
@@ -100,6 +104,7 @@ jobject sockaddrToInetAddress(JNIEnv* env, const sockaddr_storage* ss, jint* por
     }
     return env->CallStaticObjectMethod(JniConstants::inetAddressClass, getByAddressMethod,
             NULL, byteArray.get(), scope_id);
+#endif
 }
 
 static bool inetAddressToSockaddr(JNIEnv* env, jobject inetAddress, int port, sockaddr_storage* ss, bool map) {

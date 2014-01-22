@@ -83,13 +83,14 @@ static jboolean ioctl_ifreq(Env* env, Object* interfaceName, struct ifreq* ifreq
 }
 
 static jboolean iterateAddrInfo(Env* env, const char* interfaceName, jboolean (*f)(Env*, struct ifaddrs *, void*), void* data) {
-    struct ifaddrs *ap, *apit;
+// CARL TODO network
+#ifndef WINDOWS
+	struct ifaddrs *ap, *apit;
     if (getifaddrs(&ap) < 0) {
         throwSocketExceptionErrno(env, errno);
         return FALSE;
     }
-// CARL TODO network
-#ifndef WINDOWS
+
     for (apit = ap; apit != NULL; apit = apit->ifa_next) {
         if (!interfaceName || !strcmp(apit->ifa_name, interfaceName)) {
             if (!f(env, apit, data)) {
@@ -151,11 +152,16 @@ done:
 }
 
 jint Java_java_net_NetworkInterface_getInterfaceIndex(Env* env, Class* cls, Object* interfaceName) {
-    const char* name = rvmGetStringUTFChars(env, interfaceName);
+// CARL TODO Network
+#ifndef WINDOWS
+	const char* name = rvmGetStringUTFChars(env, interfaceName);
     if (!name) {
         return 0;
     }
     return if_nametoindex(name);
+#else
+	return 0 ;
+#endif
 }
 
 jint Java_java_net_NetworkInterface_getFlags(Env* env, Class* cls, Object* interfaceName) {

@@ -17,7 +17,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
-#ifndef WINDOWS
+#ifdef WINDOWS
+#include "dlfcn.h"
+#else
 #include <dlfcn.h>
 #endif
 #include <signal.h>
@@ -324,12 +326,12 @@ DynamicLib* rvmOpenDynamicLib(Env* env, const char* file, char** errorMsg) {
     *errorMsg = NULL;
     DynamicLib* dlib = NULL;
 // TODO CARL dll
-#ifdef WINDOWS
-    void* handle = NULL ; 
-	printf("WINDOWS limitations. Function: rvmOpenDynamicLib. File: %s", file ) ;
-#else
+//#ifdef WINDOWS
+//    void* handle = NULL ; 
+//	printf("WINDOWS limitations. Function: rvmOpenDynamicLib. File: %s", file ) ;
+//#else
 	void* handle = dlopen(file, RTLD_LOCAL | RTLD_LAZY);
-#endif
+//#endif
 
     if (!handle) {
         *errorMsg = dlerror();

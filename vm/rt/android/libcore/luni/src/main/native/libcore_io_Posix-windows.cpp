@@ -1197,12 +1197,15 @@ extern "C" jint Java_libcore_io_Posix_readBytes(JNIEnv* env, jobject, jobject ja
 }
 
 extern "C" jint Java_libcore_io_Posix_readv(JNIEnv* env, jobject, jobject javaFd, jobjectArray buffers, jintArray offsets, jintArray byteCounts) {
-    IoVec<ScopedBytesRW> ioVec(env, env->GetArrayLength(buffers));
-    if (!ioVec.init(buffers, offsets, byteCounts)) {
-        return -1;
-    }
-    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-    return throwIfMinusOne(env, "readv", TEMP_FAILURE_RETRY(readv(fd, ioVec.get(), ioVec.size())));
+    
+	// undefined reference to `readv'
+//	IoVec<ScopedBytesRW> ioVec(env, env->GetArrayLength(buffers));
+//    if (!ioVec.init(buffers, offsets, byteCounts)) {
+//        return -1;
+//    }
+//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+//    return throwIfMinusOne(env, "readv", TEMP_FAILURE_RETRY(readv(fd, ioVec.get(), ioVec.size())));
+	return -1 ; 
 }
 
 extern "C" jint Java_libcore_io_Posix_recvfromBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount, jint flags, jobject javaInetSocketAddress) {
@@ -1484,11 +1487,13 @@ extern "C" jint Java_libcore_io_Posix_writeBytes(JNIEnv* env, jobject, jobject j
 }
 
 extern "C" jint Java_libcore_io_Posix_writev(JNIEnv* env, jobject, jobject javaFd, jobjectArray buffers, jintArray offsets, jintArray byteCounts) {
-    IoVec<ScopedBytesRO> ioVec(env, env->GetArrayLength(buffers));
-    if (!ioVec.init(buffers, offsets, byteCounts)) {
-        return -1;
-    }
-    int fd = jniGetFDFromFileDescriptor(env, javaFd);
-    return throwIfMinusOne(env, "writev", TEMP_FAILURE_RETRY(writev(fd, ioVec.get(), ioVec.size())));
+    // undefined reference to `writev'
+//	IoVec<ScopedBytesRO> ioVec(env, env->GetArrayLength(buffers));
+//    if (!ioVec.init(buffers, offsets, byteCounts)) {
+//        return -1;
+//    }
+//    int fd = jniGetFDFromFileDescriptor(env, javaFd);
+//    return throwIfMinusOne(env, "writev", TEMP_FAILURE_RETRY(writev(fd, ioVec.get(), ioVec.size())));
+	return -1 ; 
 }
 

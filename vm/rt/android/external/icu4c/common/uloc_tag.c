@@ -65,7 +65,8 @@ typedef struct ULanguageTag {
 static const char* EMPTY = "";
 static const char* LANG_UND = "und";
 static const char* PRIVATEUSE_KEY = "x";
-static const char* _POSIX = "_POSIX";
+// CARL renamed to avoid conflicts
+static const char* ICU4C_POSIX = "_POSIX";
 static const char* POSIX_KEY = "va";
 static const char* POSIX_VALUE = "posix";
 static const char* LOCALE_ATTRIBUTE_KEY = "attribute";
@@ -1777,9 +1778,9 @@ _appendKeywords(ULanguageTag* langtag, char* appendAt, int32_t capacity, UErrorC
     /* If a POSIX variant was in the extensions, write it out before writing the keywords. */
 
     if (U_SUCCESS(*status) && posixVariant) {
-        len = (int32_t) uprv_strlen(_POSIX);
+        len = (int32_t) uprv_strlen(ICU4C_POSIX);
         if (reslen < capacity) {
-            uprv_memcpy(appendAt + reslen, _POSIX, uprv_min(len, capacity - reslen));
+            uprv_memcpy(appendAt + reslen, ICU4C_POSIX, uprv_min(len, capacity - reslen));
         }
         reslen += len;
     }

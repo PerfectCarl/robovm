@@ -403,7 +403,6 @@ set(SRC
   rand/rand_egd.c
   rand/rand_err.c
   rand/rand_lib.c
-  rand/rand_unix.c
   rand/randfile.c
   rc2/rc2_cbc.c
   rc2/rc2_ecb.c
@@ -508,6 +507,16 @@ set(SRC
   x509v3/v3_utl.c
   x509v3/v3err.c
 )
+
+if( WINDOWS )
+	set(SRC ${SRC}
+		rand/rand_win.c
+	)
+else() 
+	set(SRC ${SRC}
+		rand/rand_unix.c
+	)
+endif()
 #if(ARM)
 #  set(SRC ${SRC}
 #    aes/asm/aes-armv4.s

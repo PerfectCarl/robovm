@@ -83,7 +83,10 @@ struct JniConstants {
     static jclass structUtsnameClass;
 };
 
+// CARL network TODO DWARF 
+#ifdef WINDOWS
 #define NATIVE_METHOD(className, functionName, signature) \
     { #functionName, signature, reinterpret_cast<void*>(className ## _ ## functionName) }
+#endif
 
 #endif  // JNI_CONSTANTS_H_included

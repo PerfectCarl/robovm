@@ -64,5 +64,9 @@ static inline Object* rvmExceptionClear(Env* env) {
     return e;
 }
 
+#ifdef WINDOWS
+#define strerror_r(errno,buf,len) strerror_s(buf,len,errno)
+#endif
+
 #endif
 
