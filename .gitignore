@@ -29,3 +29,7 @@ a.out
 /CMakeFiles/
 /*dir/
 carl
+llvm/dependencies/
+*.cmake
+*.make
+/share
