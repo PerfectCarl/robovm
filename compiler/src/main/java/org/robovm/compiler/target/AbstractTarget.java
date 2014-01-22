@@ -108,7 +108,7 @@ public abstract class AbstractTarget implements Target {
 			libs.addAll(Arrays.asList("-lrobovm-core" + libSuffix, "-lgc"
 					+ libSuffix, "-lpthread", "-ldl", "-lm"));
 		}
-		if (config.getOs().getFamily() == OS.Family.linux) {
+		if (config.getOs() == OS.linux) {
 			libs.add("-lrt");
 		}
 		if (config.getOs().getFamily() == OS.Family.darwin) {
@@ -120,8 +120,8 @@ public abstract class AbstractTarget implements Target {
 
 		ccArgs.add("-L");
 		ccArgs.add(config.getOsArchDepLibDir().getAbsolutePath());
-		String toolchainPath = "C:\\Users\\cran\\Dropbox\\docs\\projects\\github\\robovm\\llvm\\dependencies\\mingw64";
-		toolchainPath = "C:\\Apps\\Mingw";
+		String toolchainPath = "C:\\Users\\cran\\Dropbox\\docs\\projects\\github\\robovm\\llvm\\dependencies\\mingw32";
+		// toolchainPath = "C:\\Apps\\Mingw";
 		if (toolchainPath != null) {
 			ccArgs.add("-L");
 			String include = toolchainPath + File.separatorChar + "lib";
@@ -166,9 +166,10 @@ public abstract class AbstractTarget implements Target {
 				libs.add(p);
 			}
 		}
-
+		objectFiles.add(new File("C:\\temp\\test.o"));
 		if (!config.getLibs().isEmpty()) {
 			objectFiles = new ArrayList<File>(objectFiles);
+
 			for (String p : config.getLibs()) {
 				if (p.endsWith(".o")) {
 					objectFiles.add(new File(p));

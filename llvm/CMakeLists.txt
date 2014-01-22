@@ -63,8 +63,9 @@ else()
 include_directories(${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2} ${CMAKE_BINARY_DIR}/llvm/include)
 endif() 
 
-# This was generated using 'llvm-config --libs core bitreader bitwriter irreader ipo arm x86 OUTPUT_VARIABLE LLVM_LIBS'
 if( WINDOWS )  
+# C:\Users\cran\Dropbox\docs\projects\github\robovm\llvm\dependencies\mingw32\bin\llvm-config.exe --libs core bitreader bitwriter irreader ipo x86
+# CARL: we added EVERYTHING to fix unrolved links
 set(LLVM_LIBS
 -lLLVMInstrumentation -lLLVMArchive -lLLVMLinker -lLLVMIRReader -lLLVMBitReader -lLLVMAsmParser -lLLVMDebugInfo -lLLVMOption 
 -lLLVMipo -lLLVMVectorize -lLLVMBitWriter -lLLVMTableGen -lLLVMSystemZCodeGen -lLLVMSystemZAsmParser -lLLVMSystemZDesc 
@@ -81,9 +82,9 @@ set(LLVM_LIBS
 -lLLVMX86Utils -lLLVMMCDisassembler -lLLVMMCParser -lLLVMInterpreter -lLLVMMCJIT -lLLVMJIT
 -lLLVMCodeGen -lLLVMObjCARCOpts -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils -lLLVMipa -lLLVMAnalysis 
 -lLLVMRuntimeDyld -lLLVMExecutionEngine -lLLVMTarget -lLLVMMC -lLLVMObject -lLLVMCore -lLLVMSupport -lmingwex
-
 )
 else()
+# This was generated using 'llvm-config --libs core bitreader bitwriter irreader ipo arm x86 OUTPUT_VARIABLE LLVM_LIBS'
 set(LLVM_LIBS
   -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen -lLLVMX86Desc -lLLVMX86Info 
   -lLLVMX86AsmPrinter -lLLVMX86Utils -lLLVMARMDisassembler -lLLVMARMCodeGen -lLLVMSelectionDAG 

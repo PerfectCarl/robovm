@@ -40,8 +40,6 @@ elseif(OS STREQUAL "windows")
   set(OS_FAMILY windows)
   set(CMAKE_CROSSCOMPILING NO)
   set(WINDOWS YES)
-  # uc4c gettext
-  add_definitions(-DU_MINGW)
   # STL + Clang
   #   include_directories(
   # 	 c:/Users/Evasion/Apps/MinGW/lib/gcc/mingw32/4.7.2/include
@@ -187,6 +185,10 @@ elseif(DARWIN)
 elseif(WINDOWS)
     add_definitions(-DWINDOWS)
     add_definitions(-DWIN32)
+#	add_definitions(-DU_WINDOWS)
+    # uc4c gettext
+	add_definitions(-DU_MINGW)
+	add_definitions(-D_POSIX)
 endif()
 
 if (ARCH STREQUAL "x86")

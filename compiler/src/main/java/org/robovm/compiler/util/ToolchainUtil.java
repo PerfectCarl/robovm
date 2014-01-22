@@ -190,8 +190,8 @@ public class ToolchainUtil {
 				ccPath = getIOSDevClang();
 			}
 		} else if (config.getOs() == OS.windows) {
-			String toolchainPath = "C:\\Users\\cran\\Dropbox\\docs\\projects\\github\\robovm\\llvm\\dependencies\\mingw64";
-			toolchainPath = "C:\\Apps\\Mingw";
+			String toolchainPath = "C:\\Users\\cran\\Dropbox\\docs\\projects\\github\\robovm\\llvm\\dependencies\\mingw32";
+			// toolchainPath = "C:\\Apps\\Mingw";
 
 			ccPath = toolchainPath + "\\bin\\g++";
 		}

@@ -15,6 +15,13 @@ DONT PATH=%PATH%;%MINGW_PATH%\msys\1.0\bin;
 
 DONT MSYS
 PTHREADS !!
+msys git patch ?
+zlib 
+
+dflcn : http://code.google.com/p/dlfcn-win32/w/list
+
+libgc : ??
+
 ## Install cmake 
 
 http://www.cmake.org/cmake/resources/software.html

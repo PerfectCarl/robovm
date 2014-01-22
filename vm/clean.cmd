@@ -1,6 +1,7 @@
 
 @echo off
 cls 
+SET OLDPATH=%PATH%
 call config.cmd
 
 SET T=%OS%-%ARCH%
@@ -25,7 +26,7 @@ rmdir /Q /S %BASE_ROOT%CMakeFiles
 echo * Deleted cmake files : %BASE_ROOT%CMakeFiles
 
 cd %BASE%
-%MAKE_BIN% clean
+rem %MAKE_BIN% clean
 
 echo.
 echo -----------------------------------------------------
@@ -52,7 +53,7 @@ mkdir  %BASE%target\build\%T%-%B%
 cd %BASE%target\build\%T%-%B%
 REM %CMAKE_BIN% 
 cd %BASE%
-
+SET PATH=%OLDPATH%
 echo.
 echo -----------------------------------------------------
 echo    Please, now run build.cmd

@@ -6,6 +6,11 @@ SET OS=windows
 SET ARCH=x86
 SET B=Release
 
-SET PATH=%PATH%;%BASE%\dependencies\mingw32\bin
+REM Using mingw64: do not use for now. Robovm not 64 bits ready
+REM SET PATH=%PATH%;%BASE%\dependencies\mingw64\bin
+REM Using mingw32
+SET TOOLCHAIN_PATH=%BASE%\dependencies\mingw32
 
-call config-make-msys.cmd
+SET PATH=%PATH%;%TOOLCHAIN_PATH%\bin
+
+call config-make-mingw.cmd
