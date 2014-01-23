@@ -11,6 +11,8 @@ echo.
 echo -----------------------------------------------------
 echo    Building for %OS%, %ARCH%, %BUILD_TYPE% ...
 echo -----------------------------------------------------
+echo    Using    %TOOL_NAME%
+echo -----------------------------------------------------
 echo.    
 
 SET CMAKE_ARGS=
@@ -26,7 +28,7 @@ SET CMAKE_ARGS=%CMAKE_ARGS% -DARCH=%ARCH%
 SET CMAKE_ARGS=%CMAKE_ARGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
 SET CMAKE_ARGS=%CMAKE_ARGS%  -G %MAKE_TYPE% 
 
-mkdir %BASE%target\build\%T%-%B%
+@mkdir %BASE%target\build\%T%-%B%
 cd %BASE%target\build\%T%-%B%
 
 cmake %CMAKE_ARGS% -Wno-dev "%BASE%"

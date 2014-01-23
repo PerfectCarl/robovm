@@ -50,6 +50,7 @@
  *
  * This implementation also removes all the fixed-length buffers of the C original.
  */
+
 bool realpath(const char* path, std::string& resolved) {
     // 'path' must be an absolute path.
     if (path[0] != '/') {

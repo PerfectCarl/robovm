@@ -25,7 +25,7 @@
 #include<stdio.h>
 #endif
 
-bool readlink(const char* path, std::string& result) {
+ bool readlink(const char* path, std::string& result) {
     // We can't know how big a buffer readlink(2) will need, so we need to
     // loop until it says "that fit".
     size_t bufSize = 512;

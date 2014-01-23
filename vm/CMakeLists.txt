@@ -237,42 +237,60 @@ message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 message(STATUS "CMAKE_SHARED_LINKER_FLAGS: ${CMAKE_SHARED_LINKER_FLAGS}")
 message(STATUS "CMAKE_MODULE_LINKER_FLAGS: ${CMAKE_MODULE_LINKER_FLAGS}")
 
-set(EXT_C_FLAGS "${C_CXX_FLAGS}")
-set(EXT_LD_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-set(EXTGC_C_FLAGS "${EXT_C_FLAGS} -DGC_DISABLE_INCREMENTAL -DGC_FORCE_UNMAP_ON_GCOLLECT")
-set(EXTGC_LD_FLAGS "${EXT_LD_FLAGS}")
-if(DARWIN)
-  set(EXTGC_C_FLAGS "${EXTGC_C_FLAGS} -DNO_DYLD_BIND_FULLY_IMAGE")
+
+
+if( WINDOWS ) 
+# Using external deps at the moment	
+#	ExternalProject_Add(extgc 
+#	  DEPENDS libatomic_ops
+#	  GIT_REPOSITORY git://github.com/robovm/bdwgc.git
+#	  GIT_TAG 40ed2d5272191a169598e60697221c88de71027b
+#	  UPDATE_COMMAND ""
+#	  PATCH_COMMAND bash -c "rmdir /Q /S libatomic_ops && copy ../../../libatomic_ops-prefix/src/libatomic_ops ."
+#	  CONFIGURE_COMMAND "" 
+#	  BUILD_IN_SOURCE 1
+#	)
+
+else()
+
+	set(EXT_C_FLAGS "${C_CXX_FLAGS}")
+	set(EXT_LD_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+	set(EXTGC_C_FLAGS "${EXT_C_FLAGS} -DGC_DISABLE_INCREMENTAL -DGC_FORCE_UNMAP_ON_GCOLLECT")
+	set(EXTGC_LD_FLAGS "${EXT_LD_FLAGS}")
+	if(DARWIN)
+	  set(EXTGC_C_FLAGS "${EXTGC_C_FLAGS} -DNO_DYLD_BIND_FULLY_IMAGE")
+	endif()
+	set(EXTGC_PARAMS  "--enable-shared=no --enable-munmap=1")
+	if (CMAKE_BUILD_TYPE STREQUAL "debug")
+	  set(EXTGC_C_FLAGS "${EXTGC_C_FLAGS} -g")
+	  set(EXTGC_PARAMS "${EXTGC_PARAMS} --enable-gc-debug=yes")
+	endif()
+	if (IOS)
+	  if (ARCH MATCHES ".*(thumb|arm).*")
+	    set(EXT_HOST --host=arm-apple-darwin7)
+	  endif()
+	endif()
+
+	ExternalProject_Add(libatomic_ops 
+	  GIT_REPOSITORY git://github.com/ivmai/libatomic_ops.git
+	  GIT_TAG f5f47f7b9c70df2e0d371dd2f303a0dec1a37223
+	  UPDATE_COMMAND ""
+	  CONFIGURE_COMMAND "" 
+	  BUILD_COMMAND ""
+	  INSTALL_COMMAND ""
+	  BUILD_IN_SOURCE 1
+	)
+	ExternalProject_Add(extgc 
+	  DEPENDS libatomic_ops
+	  GIT_REPOSITORY git://github.com/robovm/bdwgc.git
+	  GIT_TAG 40ed2d5272191a169598e60697221c88de71027b
+	  UPDATE_COMMAND ""
+	  PATCH_COMMAND bash -c "rm -f libatomic_ops && ln -s ../../../libatomic_ops-prefix/src/libatomic_ops libatomic_ops"
+	  CONFIGURE_COMMAND bash -c "CC=${CMAKE_C_COMPILER} CFLAGS='${EXTGC_C_FLAGS}' LDFLAGS='${EXTGC_LD_FLAGS}' ./configure ${EXT_HOST} ${EXTGC_PARAMS} --prefix=${CMAKE_BINARY_DIR}/gc"
+	  BUILD_IN_SOURCE 1
+	)
+	install(FILES ${CMAKE_BINARY_DIR}/gc/lib/libgc.a DESTINATION ${INSTALL_DIR} RENAME libgc${LIB_SUFFIX})
 endif()
-set(EXTGC_PARAMS  "--enable-shared=no --enable-munmap=1")
-if (CMAKE_BUILD_TYPE STREQUAL "debug")
-  set(EXTGC_C_FLAGS "${EXTGC_C_FLAGS} -g")
-  set(EXTGC_PARAMS "${EXTGC_PARAMS} --enable-gc-debug=yes")
-endif()
-if (IOS)
-  if (ARCH MATCHES ".*(thumb|arm).*")
-    set(EXT_HOST --host=arm-apple-darwin7)
-  endif()
-endif()
-ExternalProject_Add(libatomic_ops 
-  GIT_REPOSITORY git://github.com/ivmai/libatomic_ops.git
-  GIT_TAG f5f47f7b9c70df2e0d371dd2f303a0dec1a37223
-  UPDATE_COMMAND ""
-  CONFIGURE_COMMAND "" 
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-  BUILD_IN_SOURCE 1
-)
-ExternalProject_Add(extgc 
-  DEPENDS libatomic_ops
-  GIT_REPOSITORY git://github.com/robovm/bdwgc.git
-  GIT_TAG 40ed2d5272191a169598e60697221c88de71027b
-  UPDATE_COMMAND ""
-  PATCH_COMMAND bash -c "rm -f libatomic_ops && ln -s ../../../libatomic_ops-prefix/src/libatomic_ops libatomic_ops"
-  CONFIGURE_COMMAND bash -c "CC=${CMAKE_C_COMPILER} CFLAGS='${EXTGC_C_FLAGS}' LDFLAGS='${EXTGC_LD_FLAGS}' ./configure ${EXT_HOST} ${EXTGC_PARAMS} --prefix=${CMAKE_BINARY_DIR}/gc"
-  BUILD_IN_SOURCE 1
-)
-install(FILES ${CMAKE_BINARY_DIR}/gc/lib/libgc.a DESTINATION ${INSTALL_DIR} RENAME libgc${LIB_SUFFIX})
 
 add_subdirectory(core/src)
 add_subdirectory(debug/src)

@@ -66,6 +66,23 @@
 //#include <sys/wait.h>
 #include <unistd.h>
 
+// FROM http://stackoverflow.com/questions/5801813/c-usleep-is-obsolete-workarounds-for-windows-mingw
+// See also http://lists.gnu.org/archive/html/bug-gnulib/2010-04/msg00045.html
+// And avian ??
+// Not necessary if compiled mingw64-10
+
+extern "C" void nanosleep(__int64 usec) 
+{ 
+    HANDLE timer; 
+    LARGE_INTEGER ft; 
+
+    ft.QuadPart = -(10*usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+
+    timer = CreateWaitableTimer(NULL, TRUE, NULL); 
+    SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0); 
+    WaitForSingleObject(timer, INFINITE); 
+    CloseHandle(timer); 
+}
 
 //// RoboVM note: Darwin doesn't have fdatasync. Use fsync instead.
 //#if defined(__APPLE__)

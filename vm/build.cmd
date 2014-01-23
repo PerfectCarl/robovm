@@ -11,8 +11,10 @@ echo.
 echo -----------------------------------------------------
 echo    Building for %OS%, %ARCH%, %BUILD_TYPE% ...
 echo -----------------------------------------------------
+echo    Using    %TOOL_NAME%
+echo    Output   %BASE%\target\binaries\%OS%\%ARCH%
+echo -----------------------------------------------------
 echo.    
-echo Output %BASE%\target\binaries\%OS%\%ARCH%
 
 SET MSYS_PATH=%MINGW_PATH%\msys\1.0\bin
 rem SET MAKE_BIN=%MSYS_PATH%\make.exe

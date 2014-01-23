@@ -58,12 +58,14 @@ make[1]: *** [core/src/CMakeFiles/robovm-core.dir/all] Error 2
  * rvmTrycatchEnter(Env* env, TrycatchContext* tc) 
  */
     .globl _rvmTrycatchEnter
+    .globl rvmTrycatchEnter
     
     .align    16, 0x90
 // CARL : ASM DONE
         .def    _rvmTrycatchEnter; .scl    2;      .type   32;    
 .endef 
 
+rvmTrycatchEnter:
 _rvmTrycatchEnter:
 .LrvmTrycatchEnterBegin:
     mov   8(%esp), %eax          # %eax = tc

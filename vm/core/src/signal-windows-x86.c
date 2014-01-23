@@ -53,6 +53,11 @@ static jboolean installSignalHandlers(Env* env) {
     return TRUE;
 }
 
+void dumpThreadStackTrace(Env* env, Thread* thread, CallStack* callStack) {
+	printf("WINDOWS: dumpThreadStackTrace") ;
+
+}
+
 jboolean rvmSetupSignals(Env* env) {
     if (!installSignalHandlers(env)) {
         return FALSE;

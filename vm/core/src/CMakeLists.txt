@@ -29,7 +29,10 @@ set(SRC
 set_property(SOURCE unwind.c PROPERTY COMPILE_FLAGS "-fno-optimize-sibling-calls")
 
 add_library(robovm-core STATIC ${SRC})
+if( WINDOWS ) 
+else()
 add_dependencies(robovm-core extgc)
+endif()
 
 set_target_properties(robovm-core PROPERTIES SUFFIX "${LIB_SUFFIX}")
 install(TARGETS robovm-core DESTINATION ${INSTALL_DIR})

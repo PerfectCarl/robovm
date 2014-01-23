@@ -16,13 +16,13 @@ echo.
 
 del %BASE_ROOT%CMakeCache.txt
 echo * Deleted cmake files: %BASE_ROOT%CMakeCache.txt
-del %BASE_ROOT%Makefile
+@del %BASE_ROOT%Makefile
 echo * Deleted cmake files: %BASE_ROOT%Makefile
-rmdir /Q /S %BASE_ROOT%target\build\%T%-%B%
+@rmdir /Q /S %BASE_ROOT%target\build\%T%-%B%
 echo * Deleted : target
-rmdir /Q /S %BASE_ROOT%binaries\%OS%\%ARCH%\%B%
+@rmdir /Q /S %BASE_ROOT%binaries\%OS%\%ARCH%\%B%
 echo * Deleted : binaries
-rmdir /Q /S %BASE_ROOT%CMakeFiles
+@rmdir /Q /S %BASE_ROOT%CMakeFiles
 echo * Deleted cmake files : %BASE_ROOT%CMakeFiles
 
 cd %BASE%

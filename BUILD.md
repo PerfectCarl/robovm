@@ -20,7 +20,16 @@ zlib
 
 dflcn : http://code.google.com/p/dlfcn-win32/w/list
 
-libgc : ??
+libgc : 7.2e from HP.  Compiled with c:\apps\mingw\
+
+./configure --prefix=/c/temp/libatomic_ops/target && make && make install
+./configure --prefix=/c/temp/libatomic_ops/target --disable-shared && make && make install
+
+
+Or this? 
+http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-win32/
+Because http://sourceforge.net/mailarchive/message.php?msg_id=28598874
+
 
 ## Install cmake 
 

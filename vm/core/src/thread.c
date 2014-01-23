@@ -65,9 +65,14 @@ static void* getStackAddress(void) {
 #else
     size_t guardSize = 0;
     pthread_attr_t attr;
+// CARL pthread TODO
+#ifdef WINDOWS
+	printf( "WINDOWS: limitations. Function: getStackAddress. %s:%d\n", __FILE__, __LINE__) ;
+#else
     pthread_getattr_np(self, &attr);
     pthread_attr_getstack(&attr, &result, &stackSize);
     pthread_attr_getguardsize(&attr, &guardSize);
+#endif
     // On Linux pthread_attr_getstack() returns the address of the memory area allocated for the stack
     // including the guard page (except for the main thread which returns the correct stack address and 
     // pthread_attr_getguardsize() returns 0 even if there is a guard page).
@@ -375,8 +380,12 @@ jlong rvmStartThread(Env* env, JavaThread* threadObj) {
     pthread_attr_init(&threadAttr);
     pthread_attr_setdetachstate(&threadAttr, PTHREAD_CREATE_DETACHED);
     pthread_attr_setstacksize(&threadAttr, stackSize);
-    pthread_attr_setguardsize(&threadAttr, THREAD_STACK_GUARD_SIZE);
-
+// CARL TODO pthread
+#ifdef WINDOWS
+	printf( "WINDOWS: limitations. Function: rvmStartThread. %s:%d\n", __FILE__, __LINE__) ;
+#else
+	pthread_attr_setguardsize(&threadAttr, THREAD_STACK_GUARD_SIZE);
+#endif
     ThreadEntryPointArgs args = {0};
     args.env = newEnv;
     args.thread = thread;

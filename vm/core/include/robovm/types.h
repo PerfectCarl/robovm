@@ -15,8 +15,11 @@
  */
 #ifndef ROBOVM_TYPES_H
 #define ROBOVM_TYPES_H
-
+#ifdef WINDOWS
+#include "pthread.h"
+#else
 #include <pthread.h>
+#endif
 #include <jni_types.h>
 #include <jni.h>
 #include <limits.h>
