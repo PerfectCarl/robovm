@@ -26,7 +26,7 @@ REM cmake -G "MinGW Makefiles"
 
 echo.
 echo -----------------------------------------------------
-echo    Please, run generate-cmake.cmd and then build.com
+echo    Please, run generate-cmake.cmd and then build.cmd
 echo -----------------------------------------------------
 echo.    
 SET PATH=%OLDPATH%

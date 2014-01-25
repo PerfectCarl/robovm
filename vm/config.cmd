@@ -47,5 +47,5 @@ SET C_INCLUDE_PATH=%C_INCLUDE_PATH%;%DEPS_BASE%\libgc\include
 SET CPLUS_INCLUDE_PATH=%CPLUS_INCLUDE_PATH%;%DEPS_BASE%\libgc\include
 SET LD_LIBRARY_PATH=%LD_LIBRARY_PATH%;%DEPS_BASE%\libgc\lib
 
-call config-make-mingw-01.cmd
+call config-x86-mingw-01.cmd
 REM call config-make-mingw64-10.cmd

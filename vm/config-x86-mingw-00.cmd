@@ -1,12 +1,12 @@
 SET MAKE_TYPE="MinGW Makefiles"
 
-SET TOOL_NAME=0-mingw32
+SET TOOL_NAME=00-mingw-32
 
 REM 
 REM Toolchain
 REM 
 
-SET LLVM_DEPS=C:\Users\cran\Dropbox\docs\projects\github\robovm\llvm\dependencies
+SET LLVM_DEPS=C:\Apps\local
 SET TOOLCHAIN_PATH=%LLVM_DEPS%\%TOOL_NAME%
 
 SET PATH=%PATH%;%TOOLCHAIN_PATH%\bin
