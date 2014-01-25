@@ -321,9 +321,19 @@ FileUtils.writeByteArrayToFile(llFile, output.toByteArray());
         targetMachine.assemble(asm, clazz.getClassName(), oOut);
         oOut.close();
         
+        // CARL
+       // String string ="cmd /c  c:\\temp\\patch_file.cmd " +oFile.getCanonicalPath() + " file" +count++ + " && exit"; 
+       // System.out.println(string);
+       // Process tr = Runtime.getRuntime().exec( string );
+       // try {
+       //     tr.waitFor();
+       // } catch (InterruptedException e) {
+        //    e.printStackTrace();
+        //}
         targetMachine.dispose();
+        
     }
-
+    static int count =0;
     private PassManager createPassManager() {
         // Sets up the passes we would get with PassManagerBuilder (see PassManagerBuilder.cpp) at 
         // O2 level except the TailCallEliminationPass which promotes all calls to tail calls which

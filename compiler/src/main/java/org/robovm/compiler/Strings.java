@@ -36,8 +36,7 @@ public class Strings {
 				sb.append(String.format("_%02X", b));
 			}
 		}
-		System.err.println("string: " + sb.toString());
-		return sb.toString();
+ 		return sb.toString();
 	}
 
 	public static byte[] stringToModifiedUtf8(String unicode) {

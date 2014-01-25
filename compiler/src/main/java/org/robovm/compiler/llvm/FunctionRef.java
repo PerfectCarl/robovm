@@ -16,9 +16,8 @@
  */
 package org.robovm.compiler.llvm;
 
-
 /**
- *
+ * 
  * @version $Id$
  */
 public class FunctionRef extends Constant {
@@ -28,20 +27,29 @@ public class FunctionRef extends Constant {
     public FunctionRef(Function f) {
         this(f.getName(), f.getType());
     }
-    
+
     public FunctionRef(String name, FunctionType type) {
+        // CARL
+        boolean isWindows = false;
+        if (isWindows) {
+            if (name.startsWith("_")) {
+                name = name.substring(1);
+                System.out.println("name: " + name);
+            }
+        }
         this.name = name;
         this.type = type;
     }
-    
+
     public String getName() {
         return name;
     }
 
+    @Override
     public FunctionType getType() {
         return type;
     }
-    
+
     @Override
     public String toString() {
         return "@" + name;

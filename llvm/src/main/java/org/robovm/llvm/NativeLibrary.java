@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.management.RuntimeErrorException;
+
 import org.robovm.llvm.binding.LLVM;
 
 /**
@@ -50,13 +52,24 @@ public class NativeLibrary {
         } else {
             throw new Error("Unsupported OS: " + System.getProperty("os.name"));
         }
-        if (archProp.matches("amd64|x86[-_]64")) {
-            arch = "x86_64";
-        } else if (archProp.matches("i386|x86")) {
-            arch = "x86";
+        if ("windows".equals(os)) {
+            String model = System.getProperty("sun.arch.data.model");
+            if ("32".equals(model))
+                arch = "x86";
+            else if ("64".equals(model))
+                arch = "x86_64";
+            else
+                throw new Error("Unsupported sun.arch.data.model: " + model);
+
         } else {
-            throw new Error("Unsupported arch: "
-                    + System.getProperty("os.arch"));
+            if (archProp.matches("amd64|x86[-_]64")) {
+                arch = "x86_64";
+            } else if (archProp.matches("i386|x86")) {
+                arch = "x86";
+            } else {
+                throw new Error("Unsupported arch: "
+                        + System.getProperty("os.arch"));
+            }
         }
     }
 
@@ -89,9 +102,19 @@ public class NativeLibrary {
             closeQuietly(out);
         }
 
-        Runtime.getRuntime().load(tmpLibFile.getAbsolutePath());
-        if (!LLVM.StartMultithreaded()) {
-            throw new UnsatisfiedLinkError("LLVMStartMultithreaded failed");
+        path= tmpLibFile.getAbsolutePath() ;
+
+        boolean result=true;
+        try {
+            Runtime.getRuntime().load(path);
+            result = !LLVM.StartMultithreaded();
+        } catch (Throwable e) {
+            String message = "Error while loading: " +path ;
+            throw new RuntimeException(message, e) ;
+        }
+        if (result) {
+            String message = "LLVMStartMultithreaded failed while loading: " +path ;
+            throw new UnsatisfiedLinkError(message);
         }
 
         LLVM.InitializeAllTargets();
