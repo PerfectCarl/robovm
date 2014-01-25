@@ -50,9 +50,12 @@
  *
  * This implementation also removes all the fixed-length buffers of the C original.
  */
-
+#ifdef WINDOWS 
+extern "C" bool realpath(const char* path, std::string& resolved) {
+#else
 bool realpath(const char* path, std::string& resolved) {
-    // 'path' must be an absolute path.
+#endif
+	// 'path' must be an absolute path.
     if (path[0] != '/') {
         errno = EINVAL;
         return false;

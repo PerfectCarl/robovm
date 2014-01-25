@@ -65,7 +65,7 @@ static void* getStackAddress(void) {
 #else
     size_t guardSize = 0;
     pthread_attr_t attr;
-// CARL pthread TODO
+// CARL TODO pthread
 #ifdef WINDOWS
 	printf( "WINDOWS: limitations. Function: getStackAddress. %s:%d\n", __FILE__, __LINE__) ;
 #else

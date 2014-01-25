@@ -516,13 +516,8 @@ static void initializeClass(Env* env, ClassInfoHeader* header) {
     Class* clazz = ldcClass(env, header);
     if (clazz) rvmInitialize(env, clazz);
 }
-
-#ifdef WINDOWS
-void bcInitializeClass(Env* env, ClassInfoHeader* header) {
-#else
 void _bcInitializeClass(Env* env, ClassInfoHeader* header) {
-#endif
-	ENTER;
+    ENTER;
     initializeClass(env, header);
     LEAVEV;
 }
@@ -536,12 +531,7 @@ static void* lookupVirtualMethod(Env* env, Object* thiz, char* name, char* desc)
     }
     return method->synchronizedImpl ? method->synchronizedImpl : method->impl;
 }
-
-#ifdef WINDOWS
-void* bcLookupVirtualMethod(Env* env, Object* thiz, char* name, char* desc) {
-#else
 void* _bcLookupVirtualMethod(Env* env, Object* thiz, char* name, char* desc) {
-#endif
     ENTER;
     void* result = lookupVirtualMethod(env, thiz, name, desc);
     LEAVE(result);
@@ -574,22 +564,13 @@ void* lookupInterfaceMethod(Env* env, ClassInfoHeader* header, Object* thiz, cha
     }
     return method->synchronizedImpl ? method->synchronizedImpl : method->impl;
 }
-
-#ifdef WINDOWS
-void* bcLookupInterfaceMethod(Env* env, ClassInfoHeader* header, Object* thiz, char* name, char* desc) {
-#else
 void* _bcLookupInterfaceMethod(Env* env, ClassInfoHeader* header, Object* thiz, char* name, char* desc) {
-#endif
     ENTER;
     void* result = lookupInterfaceMethod(env, header, thiz, name, desc);
     LEAVE(result);
 }
 
-#ifdef WINDOWS
-void* bcLookupInterfaceMethodImpl(Env* env, ClassInfoHeader* header, Object* thiz, uint32_t index) {
-#else
 void* _bcLookupInterfaceMethodImpl(Env* env, ClassInfoHeader* header, Object* thiz, uint32_t index) {
-#endif
     TypeInfo* typeInfo = header->typeInfo;
     ITables* itables = thiz->clazz->itables;
     ITable* itable = itables->cache;
@@ -615,11 +596,7 @@ void* _bcLookupInterfaceMethodImpl(Env* env, ClassInfoHeader* header, Object* th
     LEAVE(NULL);
 }
 
-#ifdef WINDOWS
-void bcAbstractMethodCalled(Env* env, Object* thiz) {
-#else
 void _bcAbstractMethodCalled(Env* env, Object* thiz) {
-#endif
     ENTER;
     char msg[256];
     char* name = env->reserved0;
@@ -634,11 +611,7 @@ void _bcAbstractMethodCalled(Env* env, Object* thiz) {
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcNonPublicMethodCalled(Env* env, Object* thiz) {
-#else
 void _bcNonPublicMethodCalled(Env* env, Object* thiz) {
-#endif
     ENTER;
     char msg[256];
     char* name = env->reserved0;
@@ -653,311 +626,186 @@ void _bcNonPublicMethodCalled(Env* env, Object* thiz) {
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcMoveMemory16(void* dest, const void* src, jlong n) {
-#else
 void _bcMoveMemory16(void* dest, const void* src, jlong n) {
-#endif
     rvmMoveMemory16(dest, src, n);
 }
 
-#ifdef WINDOWS
-void bcMoveMemory32(void* dest, const void* src, jlong n) {
-#else
 void _bcMoveMemory32(void* dest, const void* src, jlong n) {
-#endif
-   rvmMoveMemory32(dest, src, n);
+    rvmMoveMemory32(dest, src, n);
 }
 
-#ifdef WINDOWS
-void bcTrycatchLeave(Env* env) {
-#else
 void _bcTrycatchLeave(Env* env) {
-#endif
     rvmTrycatchLeave(env);
 }
 
-#ifdef WINDOWS
-void bcThrow(Env* env, Object* throwable) {
-#else
 void _bcThrow(Env* env, Object* throwable) {
-#endif
     rvmRaiseException(env, throwable);
 }
 
-#ifdef WINDOWS
-void bcThrowIfExceptionOccurred(Env* env) {
-#else
 void _bcThrowIfExceptionOccurred(Env* env) {
-#endif
     Object* throwable = rvmExceptionOccurred(env);
     if (throwable) rvmRaiseException(env, throwable);
 }
 
-#ifdef WINDOWS
-Object* bcExceptionClear(Env* env) {
-#else
 Object* _bcExceptionClear(Env* env) {
-#endif
     return rvmExceptionClear(env);
 }
 
-#ifdef WINDOWS
-void bcThrowNullPointerException(Env* env) {
-#else
 void _bcThrowNullPointerException(Env* env) {
-#endif
     ENTER;
     rvmThrowNullPointerException(env);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowArrayIndexOutOfBoundsException(Env* env, jint length, jint index) {
-#else
 void _bcThrowArrayIndexOutOfBoundsException(Env* env, jint length, jint index) {
-#endif
     ENTER;
     rvmThrowArrayIndexOutOfBoundsException(env, length, index);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowArithmeticException(Env* env) {
-#else
 void _bcThrowArithmeticException(Env* env) {
-#endif
     ENTER;
     rvmThrowArithmeticException(env);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowUnsatisfiedLinkError(Env* env, char* msg) {
-#else
 void _bcThrowUnsatisfiedLinkError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowUnsatisfiedLinkError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowNoClassDefFoundError(Env* env, char* msg) {
-#else
 void _bcThrowNoClassDefFoundError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowNoClassDefFoundError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowNoSuchFieldError(Env* env, char* msg) {
-#else
 void _bcThrowNoSuchFieldError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowNoSuchFieldError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-	void bcThrowNoSuchMethodError(Env* env, char* msg) {
-#else
-	void _bcThrowNoSuchMethodError(Env* env, char* msg) {
-#endif
+void _bcThrowNoSuchMethodError(Env* env, char* msg) {
     ENTER;
     rvmThrowNoSuchMethodError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowIllegalAccessError(Env* env, char* msg) {
-#else
 void _bcThrowIllegalAccessError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowIllegalAccessError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowInstantiationError(Env* env, char* msg) {
-#else
 void _bcThrowInstantiationError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowInstantiationError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowAbstractMethodError(Env* env, char* msg) {
-#else
 void _bcThrowAbstractMethodError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowAbstractMethodError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowIncompatibleClassChangeError(Env* env, char* msg) {
-#else
 void _bcThrowIncompatibleClassChangeError(Env* env, char* msg) {
-#endif
     ENTER;
     rvmThrowIncompatibleClassChangeError(env, msg);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowClassCastException(Env* env, ClassInfoHeader* header, Object* o) {
-#else
+extern void _bcThrowClassCastException(Env* env, ClassInfoHeader* header, Object* o) asm ("_bcThrowClassCastException") ;
+
 void _bcThrowClassCastException(Env* env, ClassInfoHeader* header, Object* o) {
-#endif
     ENTER;
     Class* clazz = ldcClass(env, header);
     rvmThrowClassCastException(env, clazz, o->clazz);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcThrowClassCastExceptionArray(Env* env, Class* arrayClass, Object* o) {
-#else
 void _bcThrowClassCastExceptionArray(Env* env, Class* arrayClass, Object* o) {
-#endif
     ENTER;
     rvmThrowClassCastException(env, arrayClass, o->clazz);
     LEAVEV;
 }
-#ifdef WINDOWS
-Object* bcAllocate(Env* env, ClassInfoHeader* header) {
-#else
+
 Object* _bcAllocate(Env* env, ClassInfoHeader* header) {
-#endif
     ENTER;
     Object* obj = rvmAllocateObject(env, header->clazz);
     LEAVE(obj);
 }
 
-#ifdef WINDOWS
-void bcRegisterFinalizer(Env* env, Object* obj) {
-#else
 void _bcRegisterFinalizer(Env* env, Object* obj) {
-#endif
     ENTER;
     rvmRegisterFinalizer(env, obj);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-BooleanArray* bcNewBooleanArray(Env* env, jint length) {
-#else
 BooleanArray* _bcNewBooleanArray(Env* env, jint length) {
-#endif
     ENTER;
     BooleanArray* array = rvmNewBooleanArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-ByteArray* bcNewByteArray(Env* env, jint length) {
-#else
 ByteArray* _bcNewByteArray(Env* env, jint length) {
-#endif
     ENTER;
     ByteArray* array = rvmNewByteArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-CharArray* bcNewCharArray(Env* env, jint length) {
-#else
 CharArray* _bcNewCharArray(Env* env, jint length) {
-#endif
     ENTER;
     CharArray* array = rvmNewCharArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-ShortArray* bcNewShortArray(Env* env, jint length) {
-#else
 ShortArray* _bcNewShortArray(Env* env, jint length) {
-#endif
     ENTER;
     ShortArray* array = rvmNewShortArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-IntArray* bcNewIntArray(Env* env, jint length) {
-#else
 IntArray* _bcNewIntArray(Env* env, jint length) {
-#endif
     ENTER;
     IntArray* array = rvmNewIntArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-LongArray* bcNewLongArray(Env* env, jint length) {
-#else
 LongArray* _bcNewLongArray(Env* env, jint length) {
-#endif
     ENTER;
     LongArray* array = rvmNewLongArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-FloatArray* bcNewFloatArray(Env* env, jint length) {
- #else
 FloatArray* _bcNewFloatArray(Env* env, jint length) {
-#endif
-   ENTER;
+    ENTER;
     FloatArray* array = rvmNewFloatArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-DoubleArray* bcNewDoubleArray(Env* env, jint length) {
-#else
 DoubleArray* _bcNewDoubleArray(Env* env, jint length) {
-#endif
     ENTER;
     DoubleArray* array = rvmNewDoubleArray(env, length);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-ObjectArray* bcNewObjectArray(Env* env, jint length, Class* arrayClass) {
-#else
 ObjectArray* _bcNewObjectArray(Env* env, jint length, Class* arrayClass) {
-#endif
     ENTER;
     ObjectArray* array = rvmNewObjectArray(env, length, NULL, arrayClass, NULL);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-Array* bcNewMultiArray(Env* env, jint dims, jint* lengths, Class* arrayClass) {
-#else
 Array* _bcNewMultiArray(Env* env, jint dims, jint* lengths, Class* arrayClass) {
-#endif
     ENTER;
     Array* array = rvmNewMultiArray(env, dims, lengths, arrayClass);
     LEAVE(array);
 }
 
-#ifdef WINDOWS
-void bcSetObjectArrayElement(Env* env, ObjectArray* array, jint index, Object* value) {
- #else
 void _bcSetObjectArrayElement(Env* env, ObjectArray* array, jint index, Object* value) {
-#endif
-   if (!value) {
+    if (!value) {
         array->values[index] = value;
         return;        
     }
@@ -971,11 +819,8 @@ void _bcSetObjectArrayElement(Env* env, ObjectArray* array, jint index, Object* 
     LEAVEV;
 }
 
-#ifdef WINDOWS
-Object* bcLdcString(Env* env, Object** ptr, char* s, jint length) {
-#else
+
 Object* _bcLdcString(Env* env, Object** ptr, char* s, jint length) {
-#endif
     Object* o = *ptr;
     if (o) return o;
     ENTER;
@@ -987,11 +832,7 @@ Object* _bcLdcString(Env* env, Object** ptr, char* s, jint length) {
     LEAVE(o);
 }
 
-#ifdef WINDOWS
-Object* bcLdcArrayBootClass(Env* env, Class** arrayClassPtr, char* name) {
-#else
 Object* _bcLdcArrayBootClass(Env* env, Class** arrayClassPtr, char* name) {
-#endif
     Class* arrayClass = *arrayClassPtr;
     if (arrayClass) return (Object*) arrayClass;
     ENTER;    
@@ -1003,11 +844,7 @@ Object* _bcLdcArrayBootClass(Env* env, Class** arrayClassPtr, char* name) {
     LEAVE((Object*) arrayClass);
 }
 
-#ifdef WINDOWS
-Object* bcLdcArrayClass(Env* env, Class** arrayClassPtr, char* name) {
-#else
 Object* _bcLdcArrayClass(Env* env, Class** arrayClassPtr, char* name) {
-#endif
     Class* arrayClass = *arrayClassPtr;
     if (arrayClass) return (Object*) arrayClass;
     ENTER;
@@ -1019,11 +856,7 @@ Object* _bcLdcArrayClass(Env* env, Class** arrayClassPtr, char* name) {
     LEAVE((Object*) arrayClass);
 }
 
-#ifdef WINDOWS
-Object* bcLdcClass(Env* env, ClassInfoHeader* header) {
-#else
 Object* _bcLdcClass(Env* env, ClassInfoHeader* header) {
-#endif
     Class* clazz = header->clazz;
     if (clazz) return (Object*) clazz;
     ENTER;
@@ -1031,31 +864,20 @@ Object* _bcLdcClass(Env* env, ClassInfoHeader* header) {
     LEAVE((Object*) clazz);
 }
 
-#ifdef WINDOWS
-void bcMonitorEnter(Env* env, Object* obj) {
-#else
+
 void _bcMonitorEnter(Env* env, Object* obj) {
-#endif
     ENTER;
     rvmLockObject(env, obj);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-void bcMonitorExit(Env* env, Object* obj) {
-#else
 void _bcMonitorExit(Env* env, Object* obj) {
-#endif
     ENTER;
     rvmUnlockObject(env, obj);
     LEAVEV;
 }
 
-#ifdef WINDOWS
-Object* bcCheckcast(Env* env, ClassInfoHeader* header, Object* o) {
-#else
 Object* _bcCheckcast(Env* env, ClassInfoHeader* header, Object* o) {
-#endif
     if (!o) return o;
     ENTER;
     Class* clazz = ldcClass(env, header);
@@ -1068,11 +890,7 @@ Object* _bcCheckcast(Env* env, ClassInfoHeader* header, Object* o) {
     LEAVE(o);
 }
 
-#ifdef WINDOWS
-Object* bcCheckcastArray(Env* env, Class* arrayClass, Object* o) {
-#else
 Object* _bcCheckcastArray(Env* env, Class* arrayClass, Object* o) {
-#endif
     if (!o) return o;
     ENTER;
     jboolean b = rvmIsAssignableFrom(env, o->clazz, arrayClass);
@@ -1082,11 +900,7 @@ Object* _bcCheckcastArray(Env* env, Class* arrayClass, Object* o) {
     LEAVE(o);
 }
 
-#ifdef WINDOWS
-jint bcInstanceof(Env* env, ClassInfoHeader* header, Object* o) {
-#else
 jint _bcInstanceof(Env* env, ClassInfoHeader* header, Object* o) {
-#endif
     if (!o) return (jint) FALSE;
     ENTER;
     Class* clazz = ldcClass(env, header);
@@ -1097,54 +911,30 @@ jint _bcInstanceof(Env* env, ClassInfoHeader* header, Object* o) {
     LEAVE((jint) b);
 }
 
-#ifdef WINDOWS
-jint bcInstanceofArray(Env* env, Class* arrayClass, Object* o) {
-#else
 jint _bcInstanceofArray(Env* env, Class* arrayClass, Object* o) {
-#endif
     if (!o) return (jint) FALSE;
     ENTER;
     jboolean b = rvmIsInstanceOf(env, o, arrayClass);
     LEAVE((jint) b);
 }
 
-#ifdef WINDOWS
-void bcPushNativeFrame(Env* env, GatewayFrame* gwFrame, void* frameAddress) {
-#else
 void _bcPushNativeFrame(Env* env, GatewayFrame* gwFrame, void* frameAddress) {
-#endif
     rvmPushGatewayFrame0(env, gwFrame, frameAddress, NULL);
 }
 
-#ifdef WINDOWS
-void bcPopNativeFrame(Env* env) {
-#else
 void _bcPopNativeFrame(Env* env) {
-#endif
     rvmPopGatewayFrame(env);
 }
 
-#ifdef WINDOWS
-void bcPushCallbackFrame(Env* env, GatewayFrame* gwFrame, void* frameAddress) {
-#else
 void _bcPushCallbackFrame(Env* env, GatewayFrame* gwFrame, void* frameAddress) {
-#endif
     rvmPushGatewayFrame0(env, gwFrame, frameAddress, NULL);
 }
 
-#ifdef WINDOWS
-void bcPopCallbackFrame(Env* env) {
-#else
 void _bcPopCallbackFrame(Env* env) {
-#endif
     rvmPopGatewayFrame(env);
 }
 
-#ifdef WINDOWS
-void* bcResolveNative(Env* env, Class* clazz, char* name, char* desc, char* shortMangledName, char* longMangledName, void** ptr) {
-#else
 void* _bcResolveNative(Env* env, Class* clazz, char* name, char* desc, char* shortMangledName, char* longMangledName, void** ptr) {
-#endif
     if (*ptr != NULL) return *ptr;
     ENTER;
     TRACEF("_bcResolveNative: owner=%s, name=%s, desc=%s, shortMangledName=%s, longMangledName=%s", 
@@ -1157,11 +947,7 @@ void* _bcResolveNative(Env* env, Class* clazz, char* name, char* desc, char* sho
     LEAVE(impl);
 }
 
-#ifdef WINDOWS
-Env* bcAttachThreadFromCallback(void) {
-#else
 Env* _bcAttachThreadFromCallback(void) {
-#endif
     Env* env = NULL;
     if (rvmAttachCurrentThread(vm, &env, NULL, NULL) != JNI_OK) {
         rvmAbort("Failed to attach thread in callback");
@@ -1169,19 +955,11 @@ Env* _bcAttachThreadFromCallback(void) {
     return env;
 }
 
-#ifdef WINDOWS
 void _bcDetachThreadFromCallback(Env* env) {
-#else
-void _bcDetachThreadFromCallback(Env* env) {
-#endif
-	rvmDetachCurrentThread(env->vm, FALSE, TRUE);
+    rvmDetachCurrentThread(env->vm, FALSE, TRUE);
 }
 
-#ifdef WINDOWS
-void* bcCopyStruct(Env* env, void* src, jint size) {
-#else
 void* _bcCopyStruct(Env* env, void* src, jint size) {
-#endif
     ENTER;
     void* result = rvmCopyMemory(env, src, size);
     LEAVE(result);

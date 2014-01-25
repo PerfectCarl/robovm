@@ -53,6 +53,13 @@
 #define CLASS_IS_STATE_INITIALIZED(c) (((c)->flags & CLASS_STATE_MASK) == CLASS_STATE_INITIALIZED)
 #define CLASS_IS_STATE_ERROR(c) (((c)->flags & CLASS_STATE_MASK) == CLASS_STATE_ERROR)
 
+
+#ifdef WINDOWS
+#define DECL_CARL( variable ) variable asm("_"#variable) 
+#else
+#define DECL_CARL( variable ) variable 
+#endif
+
 extern Class* java_lang_Object;
 extern Class* java_lang_Class;
 extern Class* java_lang_ClassLoader;
@@ -105,18 +112,18 @@ extern Class* java_lang_IllegalStateException;
 
 extern Class* java_lang_ref_Reference;
 
-extern Class* prim_Z;
-extern Class* prim_B;
-extern Class* prim_C;
-extern Class* prim_S;
-extern Class* prim_I;
-extern Class* prim_J;
-extern Class* prim_F;
-extern Class* prim_D;
-extern Class* prim_V;
-
+extern Class* prim_Z asm("prim_Z");
+extern Class* prim_B asm("prim_B");
+extern Class* prim_C asm("prim_C");
+extern Class* prim_S asm("prim_S");
+extern Class* prim_I asm("prim_I");
+extern Class* prim_J asm("prim_J");
+extern Class* prim_F asm("prim_F");
+extern Class* prim_D asm("prim_D");
+extern Class* prim_V asm("prim_V");
+       
 extern Class* array_Z;
-extern Class* array_B;
+extern Class* array_B; 
 extern Class* array_C;
 extern Class* array_S;
 extern Class* array_I;

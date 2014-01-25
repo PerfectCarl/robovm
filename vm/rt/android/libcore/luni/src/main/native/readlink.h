@@ -22,4 +22,8 @@
  * errors are those defined for readlink(2), except that this function takes care of sizing the
  * buffer appropriately.
  */
-bool readlink(const char* path, std::string& result);
+#ifdef WINDOWS
+extern "C" bool readlink(const char* path, std::string& result) ;
+#else
+extern bool readlink(const char* path, std::string& result) ;
+#endif

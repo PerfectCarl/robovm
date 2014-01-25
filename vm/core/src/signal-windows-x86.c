@@ -20,7 +20,7 @@
 #include <errno.h>
 #include "private.h"
 
-// TODO Carl posix 
+// CARL TODO posix 
 #define LOG_TAG "core.signal"
 
 #define DUMP_THREAD_STACK_TRACE_SIGNAL SIGUSR2

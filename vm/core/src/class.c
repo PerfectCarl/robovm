@@ -72,19 +72,20 @@ Class* java_lang_IllegalMonitorStateException;
 Class* java_lang_InstantiationException;
 Class* java_lang_InterruptedException;
 Class* java_lang_IllegalStateException;
-Class* java_lang_InterruptedException;
+// CARL bug ? Declared twice
+// Class* java_lang_InterruptedException;
 
 Class* java_lang_ref_Reference;
 
-Class* prim_Z;
-Class* prim_B;
-Class* prim_C;
-Class* prim_S;
-Class* prim_I;
-Class* prim_J;
-Class* prim_F;
-Class* prim_D;
-Class* prim_V;
+Class* prim_Z asm("prim_Z");
+Class* prim_B asm("prim_B");
+Class* prim_C asm("prim_C");
+Class* prim_S asm("prim_S");
+Class* prim_I asm("prim_I");
+Class* prim_J asm("prim_J");
+Class* prim_F asm("prim_F");
+Class* prim_D asm("prim_D");
+Class* prim_V asm("prim_V");
 
 Class* array_Z;
 Class* array_B;

@@ -47,7 +47,11 @@
 // RoboVM note: This prototype used to be local to the Java_java_io_File_realpath below.
 // This made clang confused and thought the call to realpath was to the system's C version 
  // and not to the one in realpath.cpp.
-extern bool realpath(const char* path, std::string& resolved);
+#ifndef WINDOWS 
+extern bool realpath(const char* path, std::string& resolved) ;
+#else
+extern "C" bool realpath(const char* path, std::string& resolved) ;
+#endif
 
 extern "C" jstring Java_java_io_File_readlink(JNIEnv* env, jclass, jstring javaPath) {
     ScopedUtfChars path(env, javaPath);

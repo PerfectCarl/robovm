@@ -193,7 +193,7 @@ Env* rvmStartup(Options* options) {
 
     TRACE("Initializing GC");
     if (!initGC(options)) return NULL;
-// TODO CARL: posix pipe & signal review this
+// CARL TODO : posix pipe & signal review this
 #ifndef WINDOWS
     // Ignore SIGPIPE signals. SIGPIPE interrupts write() calls which we don't
     // want. Dalvik does this too in dalvikvm/Main.cpp.
@@ -325,7 +325,7 @@ void rvmAbort(char* format, ...) {
 DynamicLib* rvmOpenDynamicLib(Env* env, const char* file, char** errorMsg) {
     *errorMsg = NULL;
     DynamicLib* dlib = NULL;
-// TODO CARL dll
+// CARL dll
 //#ifdef WINDOWS
 //    void* handle = NULL ; 
 //	printf("WINDOWS limitations. Function: rvmOpenDynamicLib. File: %s", file ) ;
