@@ -39,7 +39,7 @@ Here are the main changes :
 
 # TODO
 As a rule, everything is tracked through issues : 
-  - Update the jave compiler to support Windows (https://github.com/PerfectCarl/robovm/issues/16) 
+  - ~~Update the [jave compiler to support Windows] (https://github.com/PerfectCarl/robovm/issues/16)~~
   - Find [posix equivalents] (https://github.com/PerfectCarl/robovm/issues/4)
   - Have [Networking] (https://github.com/PerfectCarl/robovm/issues/14)  and [io] (https://github.com/PerfectCarl/robovm/issues/6) working
   - Fix [misc C calls] (https://github.com/PerfectCarl/robovm/issues/7) 
