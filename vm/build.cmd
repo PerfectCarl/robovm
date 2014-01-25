@@ -16,14 +16,14 @@ echo    Output   %BASE%\target\binaries\%OS%\%ARCH%
 echo -----------------------------------------------------
 echo.    
 
-SET MSYS_PATH=%MINGW_PATH%\msys\1.0\bin
+rem SET MSYS_PATH=%MINGW_PATH%\msys\1.0\bin
 rem SET MAKE_BIN=%MSYS_PATH%\make.exe
-SET PATH=%PATH%;%MSYS_PATH%
+rem SET PATH=%PATH%;%MSYS_PATH%
 
 rem echo base dir : %BASE%\target\build\%T%-%B%
 cd %BASE%target\build\%T%-%B%
 rem %CMAKE_BIN% 
-"%MAKE_BIN%" install
+"%MAKE_BIN%" -j 4 install
 rem make install
 SET PATH=%OLDPATH%
 
