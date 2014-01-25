@@ -20,7 +20,8 @@ This project is a build for windows (32 bits for now, [64 bits is planned] (http
 
 - Code: robovm 0.0.8
 - C libraries: compiling
-- Java compiler: does not support windows
+- Java compiler: supports windows (with 32bits and 64bits jvm)
+- **Not linking**
 - Hello world program: **not working** 
 
 # Getting started 
