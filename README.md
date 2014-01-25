@@ -46,7 +46,6 @@ As a rule, everything is tracked through issues :
   - ~~Review [assembly code] (https://github.com/PerfectCarl/robovm/issues/8)~~ 
   - ~~Pass [the test suites] (https://github.com/PerfectCarl/robovm/issues/9)~~ 
   - Build a [setup program] (https://github.com/PerfectCarl/robovm/issues/10)
-  - [Support windows 64 bits] (https://github.com/PerfectCarl/robovm/issues/2)   
 
 # Approach
 Well, I'm just getting started.   
