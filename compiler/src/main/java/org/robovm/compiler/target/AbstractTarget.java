@@ -100,7 +100,7 @@ public abstract class AbstractTarget implements Target {
 		if (config.isSkipInstall()) {
 			libs.add("-lrobovm-debug" + libSuffix);
 		}
-		if (config.getOs() == OS.windows) {
+		if (config.getOs().getFamily() == OS.Family.windows) {
 			libs.addAll(Arrays.asList("-lrobovm-core" + libSuffix, "-lgc"
 					+ libSuffix));
 

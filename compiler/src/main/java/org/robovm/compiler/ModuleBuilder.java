@@ -127,7 +127,10 @@ public class ModuleBuilder {
         Global g = strings.get(string);
         if (g == null) {
             byte[] modUtf8 = stringToModifiedUtf8Z(string);
-            g = new Global(getStringVarName(modUtf8), Linkage.weak, 
+            //CARL
+            Linkage l = Linkage.weak ;
+            String name = getStringVarName(modUtf8) ;
+            g = new Global(name, l, 
                     new StringConstant(modUtf8), true);
             addGlobal(g);
             strings.put(string, g);

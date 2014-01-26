@@ -36,7 +36,10 @@ public class Strings {
 				sb.append(String.format("_%02X", b));
 			}
 		}
- 		return sb.toString();
+		String str = sb.toString() ;
+		if( str.contains("28_29"))
+		    System.out.println(str);
+ 		return str;
 	}
 
 	public static byte[] stringToModifiedUtf8(String unicode) {

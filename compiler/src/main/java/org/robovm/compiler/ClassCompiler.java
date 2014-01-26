@@ -292,7 +292,7 @@ public class ClassCompiler {
             }
             throw new RuntimeException(t);
         }
-FileUtils.writeByteArrayToFile(llFile, output.toByteArray());
+        FileUtils.writeByteArrayToFile(llFile, output.toByteArray());
         Context context = new Context();
         Module module = Module.parseIR(context, output.toByteArray(), clazz.getClassName());
         PassManager passManager = createPassManager();

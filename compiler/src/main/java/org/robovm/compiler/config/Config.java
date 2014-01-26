@@ -178,6 +178,9 @@ public class Config {
 
     public String getTriple() {
         return arch.getLlvmName() + "-unknown-" + os;
+        // CARL
+        //i386-unknown-win32 or 
+        //return "i386-unknown-mingw32" ;
     }
     
     public DataLayout getDataLayout() {

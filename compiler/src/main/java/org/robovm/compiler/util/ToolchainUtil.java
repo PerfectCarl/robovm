@@ -147,7 +147,7 @@ public class ToolchainUtil {
 						objectsFile));
 				for (File f : objectFiles) {
 					objectsOut.write('"');
-					if (config.getOs() == OS.windows)
+					if (config.getOs().getFamily() == OS.Family.windows)
 						objectsOut.write(f.getAbsolutePath()
 								.replace("\\", "\\\\").getBytes());
 					else
@@ -189,7 +189,7 @@ public class ToolchainUtil {
 			} else {
 				ccPath = getIOSDevClang();
 			}
-		} else if (config.getOs() == OS.windows) {
+		} else if (config.getOs().getFamily() == OS.Family.windows) {
 			String toolchainPath = "C:\\Users\\cran\\Dropbox\\docs\\projects\\github\\robovm\\llvm\\dependencies\\mingw32";
 			// toolchainPath = "C:\\Apps\\Mingw";
 
