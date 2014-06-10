@@ -20,6 +20,13 @@
 #include "ScopedPthreadMutexLock.h"
 #include <pthread.h>
 
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
+#   define SOCKET int
+#else
+#   include <Winsock2.h>
+#   include <windows.h>
+#endif
+
 /**
  * AsynchronousSocketCloseMonitor helps implement Java's asynchronous Socket.close semantics.
  *
@@ -39,18 +46,22 @@
  */
 class AsynchronousSocketCloseMonitor {
 public:
-    AsynchronousSocketCloseMonitor(int fd);
+    AsynchronousSocketCloseMonitor(SOCKET fd);
     ~AsynchronousSocketCloseMonitor();
 
     static void init();
 
-    static void signalBlockedThreads(int fd);
+    static void signalBlockedThreads(SOCKET fd);
 
 private:
     AsynchronousSocketCloseMonitor* mPrev;
     AsynchronousSocketCloseMonitor* mNext;
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
     pthread_t mThread;
-    int mFd;
+#else
+    DWORD mThreadId;
+#endif
+    SOCKET mFd;
 
     // Disallow copy and assignment.
     AsynchronousSocketCloseMonitor(const AsynchronousSocketCloseMonitor&);

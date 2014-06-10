@@ -332,6 +332,7 @@ set(SRC
   evp/pmeth_fn.c
   evp/pmeth_gn.c
   evp/pmeth_lib.c
+  evp/evp_cnf.c
   hmac/hm_ameth.c
   hmac/hm_pmeth.c
   hmac/hmac.c
@@ -413,6 +414,8 @@ set(SRC
   rc2/rc2ofb64.c
   rc4/rc4_enc.c
   rc4/rc4_skey.c
+  rc4/rc4_utl.c
+  rc4/rc4_utl.c
   rc4/rc4_utl.c
   ripemd/rmd_dgst.c
   ripemd/rmd_one.c

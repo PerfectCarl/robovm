@@ -75,7 +75,7 @@
 #elif defined OPENSSL_SYS_VMS
 #include "LPdir_vms.c"
 #elif defined OPENSSL_SYS_WIN32
-#include "LPdir_win.c"
+#include "LPdir_win32.c"
 #elif defined OPENSSL_SYS_WINCE
 #include "LPdir_wince.c"
 #else

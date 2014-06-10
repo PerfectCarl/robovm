@@ -54,7 +54,7 @@ inline void rvmUnlockThreadsList() {
  */
 static void* getStackAddress(void) {
     void* result = NULL;
-#if !defined(WINDOWS)
+#if !defined(X_WINDOWS)
     size_t stackSize = 0;
     pthread_t self = pthread_self();
 #if defined(DARWIN)
@@ -72,7 +72,7 @@ static void* getStackAddress(void) {
 #else // MACOSX
         // Stack size for the main thread is 8MB on OSX excluding the guard page size
         stackSize = 8 * 1024 * 1024;
-#endif
+#endif // IOS
     } else {
         // For other threads pthread_get_stacksize_np() returns the correct stack size excluding guard page size
         stackSize = pthread_get_stacksize_np(self);
@@ -83,15 +83,18 @@ static void* getStackAddress(void) {
 #else
     size_t guardSize = 0;
     pthread_attr_t attr;
+	// CARL HACK
+#ifndef WINDOWS
     pthread_getattr_np(self, &attr);
     pthread_attr_getstack(&attr, &result, &stackSize);
     pthread_attr_getguardsize(&attr, &guardSize);
+#endif
     // On Linux pthread_attr_getstack() returns the address of the memory area allocated for the stack
     // including the guard page (except for the main thread which returns the correct stack address and 
     // pthread_attr_getguardsize() returns 0 even if there is a guard page).
     result += guardSize;
-#endif
-#endif
+#endif // DARWIN
+#endif // X_WINDOWS
     return result;
 }
 

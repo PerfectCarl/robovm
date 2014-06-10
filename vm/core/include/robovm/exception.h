@@ -16,10 +16,6 @@
 #ifndef ROBOVM_EXCEPTION_H
 #define ROBOVM_EXCEPTION_H
 
-#if defined(WINDOWS)
-#define strerror_r(errno,buf,len) strerror_s(buf,len,errno)
-#endif
-
 extern jboolean rvmInitExceptions(Env* env);
 extern void rvmExceptionPrintStackTrace(Env* env, Object* e, FILE* f);
 extern void rvmPrintStackTrace(Env* env, Object* throwable);

@@ -106,7 +106,7 @@ private:
     void operator=(const NativeUnsafeByteSequence&);
 };
 
-extern "C" void Java_java_nio_charset_Charsets_asciiBytesToChars(JNIEnv* env, jclass, jbyteArray javaBytes, jint offset, jint length, jcharArray javaChars) {
+static void Charsets_asciiBytesToChars(JNIEnv* env, jclass, jbyteArray javaBytes, jint offset, jint length, jcharArray javaChars) {
     ScopedByteArrayRO bytes(env, javaBytes);
     if (bytes.get() == NULL) {
         return;
@@ -125,7 +125,7 @@ extern "C" void Java_java_nio_charset_Charsets_asciiBytesToChars(JNIEnv* env, jc
     }
 }
 
-extern "C" void Java_java_nio_charset_Charsets_isoLatin1BytesToChars(JNIEnv* env, jclass, jbyteArray javaBytes, jint offset, jint length, jcharArray javaChars) {
+static void Charsets_isoLatin1BytesToChars(JNIEnv* env, jclass, jbyteArray javaBytes, jint offset, jint length, jcharArray javaChars) {
     ScopedByteArrayRO bytes(env, javaBytes);
     if (bytes.get() == NULL) {
         return;
@@ -172,15 +172,15 @@ static jbyteArray charsToBytes(JNIEnv* env, jcharArray javaChars, jint offset, j
     return javaBytes;
 }
 
-extern "C" jbyteArray Java_java_nio_charset_Charsets_toAsciiBytes(JNIEnv* env, jclass, jcharArray javaChars, jint offset, jint length) {
+static jbyteArray Charsets_toAsciiBytes(JNIEnv* env, jclass, jcharArray javaChars, jint offset, jint length) {
     return charsToBytes(env, javaChars, offset, length, 0x7f);
 }
 
-extern "C" jbyteArray Java_java_nio_charset_Charsets_toIsoLatin1Bytes(JNIEnv* env, jclass, jcharArray javaChars, jint offset, jint length) {
+static jbyteArray Charsets_toIsoLatin1Bytes(JNIEnv* env, jclass, jcharArray javaChars, jint offset, jint length) {
     return charsToBytes(env, javaChars, offset, length, 0xff);
 }
 
-extern "C" jbyteArray Java_java_nio_charset_Charsets_toUtf8Bytes(JNIEnv* env, jclass, jcharArray javaChars, jint offset, jint length) {
+static jbyteArray Charsets_toUtf8Bytes(JNIEnv* env, jclass, jcharArray javaChars, jint offset, jint length) {
     ScopedCharArrayRO chars(env, javaChars);
     if (chars.get() == NULL) {
         return NULL;
@@ -238,3 +238,13 @@ extern "C" jbyteArray Java_java_nio_charset_Charsets_toUtf8Bytes(JNIEnv* env, jc
     return out.toByteArray();
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Charsets, asciiBytesToChars, "([BII[C)V"),
+    NATIVE_METHOD(Charsets, isoLatin1BytesToChars, "([BII[C)V"),
+    NATIVE_METHOD(Charsets, toAsciiBytes, "([CII)[B"),
+    NATIVE_METHOD(Charsets, toIsoLatin1Bytes, "([CII)[B"),
+    NATIVE_METHOD(Charsets, toUtf8Bytes, "([CII)[B"),
+};
+void register_java_nio_charset_Charsets(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/nio/charset/Charsets", gMethods, NELEM(gMethods));
+}

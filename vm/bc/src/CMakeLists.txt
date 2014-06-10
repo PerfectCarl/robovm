@@ -1,6 +1,14 @@
 project(bc)
 
-include_directories(../../core/include ${CMAKE_BINARY_DIR}/gc/include)
+if( WINDOWS ) 
+	include_directories(
+		../../core/include 
+		../../../../android-windows-binaries/dependencies/windows/gc/include)
+else()
+	include_directories(
+		../../core/include 
+		${CMAKE_BINARY_DIR}/gc/include)
+endif() 
 
 if (WITH_FPIC)
   remove_definitions(-fPIC)

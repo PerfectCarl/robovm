@@ -23,7 +23,7 @@
 #include "jni.h"
 #include "zlib.h"
 
-extern "C" jlong Java_java_util_zip_CRC32_updateImpl(JNIEnv* env, jobject, jbyteArray byteArray, int off, int len, jlong crc) {
+static jlong CRC32_updateImpl(JNIEnv* env, jobject, jbyteArray byteArray, int off, int len, jlong crc) {
     ScopedByteArrayRO bytes(env, byteArray);
     if (bytes.get() == NULL) {
         return 0;
@@ -32,7 +32,14 @@ extern "C" jlong Java_java_util_zip_CRC32_updateImpl(JNIEnv* env, jobject, jbyte
     return result;
 }
 
-extern "C" jlong Java_java_util_zip_CRC32_updateByteImpl(JNIEnv*, jobject, jbyte val, jlong crc) {
+static jlong CRC32_updateByteImpl(JNIEnv*, jobject, jbyte val, jlong crc) {
     return crc32(crc, reinterpret_cast<const Bytef*>(&val), 1);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(CRC32, updateImpl, "([BIIJ)J"),
+    NATIVE_METHOD(CRC32, updateByteImpl, "(BJ)J"),
+};
+void register_java_util_zip_CRC32(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/util/zip/CRC32", gMethods, NELEM(gMethods));
+}

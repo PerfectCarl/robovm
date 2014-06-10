@@ -1,0 +1,71 @@
+rem Building executable C:\Users\cran\AppData\Local\Temp\robovm6640977305721361800.tmp\HelloWorld
+rem g++ -o C:\Users\cran\AppData\Local\Temp\robovm6640977305721361800.tmp\HelloWorld -g -m32 @C:\Users\cran\AppData\Local\Temp\robovm6640977305721361800.tmp\objects -L C:\Users\cran\Dropbox\docs\projects\github\robovm\carl\robovm-0.0.9\lib\vm\windows\x86 -lrobovm-bc -Wl,--whole-archive -lrobovm-rt -Wl,--no-whole-archive -lrobovm-core -lgc -lpthread -ldl -lm
+
+@echo off
+cls
+REM 01-mingw-32
+SET TOOLS=C:\Apps\local
+SET NAME=01-mingw-32
+
+REM 10-mingw64-32
+rem SET TOOLS=C:\Apps\local
+rem SET NAME=10-mingw64-32
+REM Doesn't work, needs SLJF
+
+REM 11-mingw64-32
+REM SET TOOLS=C:\Apps\local
+REM SET NAME=11-mingw64-32
+
+SET TOOLS=%TOOLS%\%NAME%
+
+rem SET TOOLS=C:\Apps\Mingw
+rem SET NAME=official mingw 
+
+echo --------------------------------
+Echo    Linking with %NAME%...
+echo --------------------------------
+echo.
+
+rem SET ARG=%ARG% -o C:\Users\cran\AppData\Local\Temp\robovm1727739914815358074.tmp\HelloWorld 
+SET ARG=%TOOLS%\bin\g++
+SET ARG=%ARG% -o .\HelloWorld.exe 
+SET ARG=%ARG% -g -m32 
+SET RVM_PATH=C:\Users\cran\Dropbox\docs\projects\github\robovm\robovm
+SET ROBOVM_DEPS=%RVM_PATH%\dependencies\windows
+SET TOOL_DEPS=%TOOLS%
+
+SET ARG=%ARG% -L %RVM_PATH%\carl\robovm-0.0.9\lib\vm\windows\x86
+REM 
+REM Common libs
+REM 
+SET ARG=%ARG% -L %TOOL_DEPS%\lib
+SET ARG=%ARG% -L %ROBOVM_DEPS%\libgc\lib
+SET ARG=%ARG% -L %ROBOVM_DEPS%\dlfcn\lib
+SET ARG=%ARG% -L %ROBOVM_DEPS%\openssl\no-shared\lib
+
+REM 
+REM Toolchain specific libs
+REM 
+
+REM 00: Using mingw32 pthreads in dsgn
+
+REM 01: using pthread external 
+SET ARG=%ARG% -L %ROBOVM_DEPS%\pthread\lib\x86
+
+SET ARG=%ARG% -Wl,-rpath=$ORIGIN -Wl,--gc-sections -lrobovm-bc -Wl,--whole-archive -lrobovm-rt 
+SET ARG=%ARG% -Wl,--no-whole-archive -lrobovm-core -lgc 
+
+REM 00: libs
+REM SET ARG=%ARG% -lpthreadGC2 -ldl -lstdc++ -lws2_32 -lssl -lwsock32 -lgdi32
+REM 01: libs
+SET ARG=%ARG% -lpthreadGC2 -ldl -lstdc++ -lssl -lcrypto -lws2_32 -lwsock32 -lgdi32 -lgcc -lgcc_s 
+SET ARG=%ARG%  -lshlwapi
+rem -lnetapi32 -lp2pcollab -lrpchttp 
+REM SET ARG=%ARG% @C:\Users\cran\AppData\Local\Temp\robovm3774596063679264132.tmp\objects 
+SET ARG=%ARG% @objects.txt
+rem SET ARG=%ARG% -Wl,--entry=_mainXX
+
+%ARG%
+REM -lssl ??
+rem "C:\Apps\local\01-mingw-32\lib\libstdc++.a"
+rem "C:\Apps\local\01-mingw-32\lib\libgcc_s.a"

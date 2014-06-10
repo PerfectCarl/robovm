@@ -29,6 +29,8 @@
 
 #if defined(WINDOWS)
 #include <stddef.h>
+#include <windows.h>
+
 char* strsep(char** stringp, const char* delim)
 {
   char* start = *stringp;
@@ -48,14 +50,20 @@ char* strsep(char** stringp, const char* delim)
 
   return start;
 }
+
+char *c_realpath(const char *path, char *resolved_path)
+{
+    return GetFullPathName(path, MAX_PATH, resolved_path, NULL) ? resolved_path : NULL;
+}
 #endif
 
 ClassLoader* systemClassLoader = NULL;
 static Class* java_lang_Daemons = NULL;
 static Method* java_lang_Daemons_start = NULL;
 
-extern int registerJniHelp(JNIEnv* env);
-extern int registerCoreLibrariesJni(JNIEnv* env);
+// CARL Hack : not defined in 4.4r07
+// extern int registerJniHelp(JNIEnv* env);
+// extern int registerCoreLibrariesJni(JNIEnv* env);
 
 static inline jint startsWith(char* s, char* prefix) {
     return s && strncmp(s, prefix, strlen(prefix)) == 0;
@@ -72,14 +80,31 @@ static char* absolutize(char* basePath, char* rel, char* dest) {
     return dest;
 }
 
+//CARL debug 
+
+void CARL_start( char* string)
+{	
+	printf( "%s started\n", string ) ; 
+}
+void CARL_stop( char* string)
+{	
+	printf( "%s stopped\n", string ) ; 
+}
+void CARL_log( char* string)
+{	
+	printf( "** CARL %s\n", string ) ; 
+}
+
 static jboolean ignoreSignal(int signo) {
 #if !defined(WINDOWS)
     if (signal(signo, SIG_IGN) == SIG_ERR) {
         return FALSE;
     }
 #endif
-    return TRUE;
+	CARL_log( "Ignored signal") ;
+	return TRUE;
 }
+
 
 static jboolean initClasspathEntries(Env* env, char* basePath, char** raw, ClasspathEntry** first) {
     jint i = 0;
@@ -95,10 +120,17 @@ static jboolean initClasspathEntries(Env* env, char* basePath, char** raw, Class
 }
 
 jboolean rvmInitOptions(int argc, char* argv[], Options* options, jboolean ignoreRvmArgs) {
-    SystemProperty** nextProperty = &options->properties; //Keep a pointer to where the next SystemProperty* will go.
+    CARL_start( "rvmInitOptions");
+	SystemProperty** nextProperty = &options->properties; //Keep a pointer to where the next SystemProperty* will go.
     char path[PATH_MAX];
-#if !defined(WINDOWS)    
-    if (!realpath(argv[0], path)) {
+#ifdef WINDOWS
+	if (!c_realpath(argv[0], path)) {
+        CARL_log("Bye") ;
+		return FALSE;
+    }
+
+#else
+	if (!realpath(argv[0], path)) {
         return FALSE;
     }
 #endif
@@ -113,7 +145,7 @@ jboolean rvmInitOptions(int argc, char* argv[], Options* options, jboolean ignor
     }
 
     strcpy(options->basePath, path);
-
+	CARL_log("A1");
     jint firstJavaArg = 1;
     for (i = 1; i < argc; i++) {
         if (startsWith(argv[i], "-rvm:")) {
@@ -190,21 +222,27 @@ jboolean rvmInitOptions(int argc, char* argv[], Options* options, jboolean ignor
             break;
         }
     }
-
+	CARL_log("A2");
     options->commandLineArgs = NULL;
     options->commandLineArgsCount = argc - firstJavaArg;
-    if (options->commandLineArgsCount > 0) {
+    CARL_log("A3");
+	if (options->commandLineArgsCount > 0) {
         options->commandLineArgs = &argv[firstJavaArg];
     }
+    CARL_stop( "rvmInitOptions");
 
     return options->mainClass != NULL;
 }
 
 VM* rvmCreateVM(Options* options) {
-    VM* vm = gcAllocate(sizeof(VM));
+    CARL_start( "rvmCreateVM");
+
+	VM* vm = gcAllocate(sizeof(VM));
     if (!vm) return NULL;
     vm->options = options;
     rvmInitJavaVM(vm);
+	CARL_stop( "rvmCreateVM");
+
     return vm;
 }
 
@@ -218,6 +256,7 @@ Env* rvmCreateEnv(VM* vm) {
 
 Env* rvmStartup(Options* options) {
     // TODO: Error handling
+	CARL_start( "rvmStartup");
 
 #if defined(IOS) && (defined(RVM_ARMV7) || defined(RVM_THUMBV7))
     // Enable IEEE-754 denormal support.
@@ -284,10 +323,12 @@ Env* rvmStartup(Options* options) {
 //    RT_JNI_OnLoad(&vm->javaVM, NULL);
     // Initialize dalvik's JNIHelp code in libnativehelper
     TRACE("Initializing dalvik's libnativehelper");
-    registerJniHelp((JNIEnv*) env);
+    // CARL Hack : not defined in 4.4r07
+	// registerJniHelp((JNIEnv*) env);
     // Initialize the dalvik rt JNI code
     TRACE("Initializing dalvik's runtime JNI code");
-    registerCoreLibrariesJni((JNIEnv*) env);
+    // CARL HACK
+	//registerCoreLibrariesJni((JNIEnv*) env);
 
     TRACE("Creating system ClassLoader");
     systemClassLoader = rvmGetSystemClassLoader(env);
@@ -306,17 +347,19 @@ Env* rvmStartup(Options* options) {
     rvmCallVoidClassMethod(env, java_lang_Daemons, java_lang_Daemons_start);
     if (rvmExceptionCheck(env)) goto error_daemons;
     TRACE("Daemons started");
-
+	CARL_stop( "rvmStartup");
     return env;
 
 error_daemons:
 error_system_ClassLoader:
     rvmDetachCurrentThread(env->vm, TRUE, FALSE);
+	CARL_stop( "rvmStartup");
 
     return NULL;
 }
 
 jboolean rvmRun(Env* env) {
+	CARL_start( "rvmRun");
     Options* options = env->vm->options;
     Class* clazz = NULL;
 
@@ -394,7 +437,7 @@ jboolean rvmRun(Env* env) {
     rvmDetachCurrentThread(env->vm, TRUE, FALSE);
 
     rvmJoinNonDaemonThreads(env);
-
+	CARL_stop( "rvmRun");
     return throwable == NULL ? TRUE : FALSE;
 }
 

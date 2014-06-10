@@ -30,9 +30,19 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 
-extern "C" void Java_java_lang_System_log(JNIEnv* env, jclass, jchar type, jstring javaMessage, jthrowable exception) {
+#if defined(__APPLE__)
+#include <mach/mach_time.h>
+#endif
+
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include "mingw-extensions.h"
+#endif
+
+static void System_log(JNIEnv* env, jclass, jchar type, jstring javaMessage, jthrowable exception) {
     ScopedUtfChars message(env, javaMessage);
     if (message.c_str() == NULL) {
         // Since this function is used for last-gasp debugging output, be noisy on failure.
@@ -57,7 +67,7 @@ extern "C" void Java_java_lang_System_log(JNIEnv* env, jclass, jchar type, jstri
 }
 
 // Sets a field via JNI. Used for the standard streams, which are read-only otherwise.
-extern "C" void Java_java_lang_System_setFieldImpl(JNIEnv* env, jclass clazz,
+static void System_setFieldImpl(JNIEnv* env, jclass clazz,
         jstring javaName, jstring javaSignature, jobject object) {
     ScopedUtfChars name(env, javaName);
     if (name.c_str() == NULL) {
@@ -71,7 +81,7 @@ extern "C" void Java_java_lang_System_setFieldImpl(JNIEnv* env, jclass clazz,
     env->SetStaticObjectField(clazz, fieldID, object);
 }
 
-extern "C" jobjectArray Java_java_lang_System_specialProperties(JNIEnv* env, jclass) {
+static jobjectArray System_specialProperties(JNIEnv* env, jclass) {
     std::vector<std::string> properties;
 
     char path[PATH_MAX];
@@ -83,3 +93,46 @@ extern "C" jobjectArray Java_java_lang_System_specialProperties(JNIEnv* env, jcl
     return toStringArray(env, properties);
 }
 
+static jlong System_currentTimeMillis(JNIEnv*, jclass) {
+    timeval now;
+    gettimeofday(&now, NULL);
+    jlong when = now.tv_sec * 1000LL + now.tv_usec / 1000;
+    return when;
+}
+
+static jlong System_nanoTime(JNIEnv*, jclass) {
+#if defined(__APPLE__)
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+    return mach_absolute_time() * (info.numer / info.denom);
+#else
+    timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+    return now.tv_sec * 1000000000LL + now.tv_nsec;
+#endif
+}
+
+static jstring System_mapLibraryName(JNIEnv* env, jclass, jstring javaName) {
+    ScopedUtfChars name(env, javaName);
+    if (name.c_str() == NULL) {
+        return NULL;
+    }
+    char* mappedName = NULL;
+	asprintf(&mappedName, OS_SHARED_LIB_FORMAT_STR, name.c_str());
+    jstring result = env->NewStringUTF(mappedName);
+    free(mappedName);
+    return result;
+}
+
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(System, currentTimeMillis, "()J"),
+    NATIVE_METHOD(System, log, "(CLjava/lang/String;Ljava/lang/Throwable;)V"),
+    NATIVE_METHOD(System, mapLibraryName, "(Ljava/lang/String;)Ljava/lang/String;"),
+    NATIVE_METHOD(System, nanoTime, "()J"),
+    NATIVE_METHOD(System, setFieldImpl, "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V"),
+    NATIVE_METHOD(System, specialProperties, "()[Ljava/lang/String;"),
+};
+void register_java_lang_System(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/lang/System", gMethods, NELEM(gMethods));
+}

@@ -35,21 +35,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-// RoboVM note: There's no sys/vfs.h on Darwin and it's not required to compile this file
-// CARL io : vfs not present on Windows
-#if !defined(__APPLE__) && !defined(WINDOWS)
-#   include <sys/vfs.h>
-#endif
 #include <time.h>
 #include <unistd.h>
 #include <utime.h>
 
-// RoboVM note: This prototype used to be local to the Java_java_io_File_realpath below.
-// This made clang confused and thought the call to realpath was to the system's C version 
- // and not to the one in realpath.cpp.
-extern bool realpath(const char* path, std::string& resolved);
-
-extern "C" jstring Java_java_io_File_readlink(JNIEnv* env, jclass, jstring javaPath) {
+static jstring File_readlink(JNIEnv* env, jclass, jstring javaPath) {
     ScopedUtfChars path(env, javaPath);
     if (path.c_str() == NULL) {
         return NULL;
@@ -63,12 +53,12 @@ extern "C" jstring Java_java_io_File_readlink(JNIEnv* env, jclass, jstring javaP
     return env->NewStringUTF(result.c_str());
 }
 
-extern "C" jstring Java_java_io_File_realpath(JNIEnv* env, jclass, jstring javaPath) {
+static jstring File_realpath(JNIEnv* env, jclass, jstring javaPath) {
     ScopedUtfChars path(env, javaPath);
     if (path.c_str() == NULL) {
         return NULL;
     }
-
+    extern bool realpath(const char* path, std::string& resolved);
     std::string result;
     if (!realpath(path.c_str(), result)) {
         jniThrowIOException(env, errno);
@@ -77,7 +67,7 @@ extern "C" jstring Java_java_io_File_realpath(JNIEnv* env, jclass, jstring javaP
     return env->NewStringUTF(result.c_str());
 }
 
-extern "C" jboolean Java_java_io_File_setLastModifiedImpl(JNIEnv* env, jclass, jstring javaPath, jlong ms) {
+static jboolean File_setLastModifiedImpl(JNIEnv* env, jclass, jstring javaPath, jlong ms) {
     ScopedUtfChars path(env, javaPath);
     if (path.c_str() == NULL) {
         return JNI_FALSE;
@@ -115,26 +105,15 @@ public:
         if (mIsBad) {
             return NULL;
         }
-        dirent* result = NULL;
-
-// CARL : io 
-		
-//c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libcore/luni/src/main/native/java_io_File.cpp: In member function 'const char* ScopedReaddir::next()':
-//c:/Users/Evasion/Dropbox/docs/projects/robovm/robovm/vm/rt/android/libcore/luni/src/main/native/java_io_File.cpp:119:56:error: 'readdir_r' was not declared in this scope
-//make[2]: *** [rt/android/libcore/luni/src/main/native/CMakeFiles/android-libcore-luni.dir/java_io_File.cpp.obj] Error 1
-//make[1]: *** [rt/android/libcore/luni/src/main/native/CMakeFiles/android-libcore-luni.dir/all] Error 2
-//make: *** [all] Error 2
-
-#ifdef WINDOWS 
-		int rc = 0 ; 
-#else 
-        int rc = readdir_r(mDirStream, &mEntry, &result);
-#endif
-		if (rc != 0) {
-            mIsBad = true;
-            return NULL;
+        errno = 0;
+        dirent* result = readdir(mDirStream);
+        if (result != NULL) {
+            return result->d_name;
         }
-        return (result != NULL) ? result->d_name : NULL;
+        if (errno != 0) {
+            mIsBad = true;
+        }
+        return NULL;
     }
 
     // Has an error occurred on this stream?
@@ -144,7 +123,6 @@ public:
 
 private:
     DIR* mDirStream;
-    dirent mEntry;
     bool mIsBad;
 
     // Disallow copy and assignment.
@@ -173,7 +151,7 @@ static bool readDirectory(JNIEnv* env, jstring javaPath, DirEntries& entries) {
     return !dir.isBad();
 }
 
-extern "C" jobjectArray Java_java_io_File_listImpl(JNIEnv* env, jclass, jstring javaPath) {
+static jobjectArray File_listImpl(JNIEnv* env, jclass, jstring javaPath) {
     // Read the directory entries into an intermediate form.
     DirEntries entries;
     if (!readDirectory(env, javaPath, entries)) {
@@ -183,3 +161,12 @@ extern "C" jobjectArray Java_java_io_File_listImpl(JNIEnv* env, jclass, jstring 
     return toStringArray(env, entries);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(File, listImpl, "(Ljava/lang/String;)[Ljava/lang/String;"),
+    NATIVE_METHOD(File, readlink, "(Ljava/lang/String;)Ljava/lang/String;"),
+    NATIVE_METHOD(File, realpath, "(Ljava/lang/String;)Ljava/lang/String;"),
+    NATIVE_METHOD(File, setLastModifiedImpl, "(Ljava/lang/String;J)Z"),
+};
+void register_java_io_File(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/io/File", gMethods, NELEM(gMethods));
+}

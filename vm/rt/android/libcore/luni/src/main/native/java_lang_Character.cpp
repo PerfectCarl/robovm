@@ -23,23 +23,31 @@
 #include <math.h>
 #include <stdlib.h>
 
-extern "C" jint Java_java_lang_Character_digitImpl(JNIEnv*, jclass, jint codePoint, jint radix) {
+#if defined(__MINGW32__) || defined(__MINGW64__)
+// Robovm note : (Carl)
+// Error 
+//      use of undeclared identifier 'BUFSIZ'
+//    char buf[BUFSIZ]; // TODO: is there a more sensible upper bound?
+#include <stdio.h>
+#endif
+
+static jint Character_digitImpl(JNIEnv*, jclass, jint codePoint, jint radix) {
     return u_digit(codePoint, radix);
 }
 
-extern "C" jint Java_java_lang_Character_getTypeImpl(JNIEnv*, jclass, jint codePoint) {
+static jint Character_getTypeImpl(JNIEnv*, jclass, jint codePoint) {
     return u_charType(codePoint);
 }
 
-extern "C" jbyte Java_java_lang_Character_getDirectionalityImpl(JNIEnv*, jclass, jint codePoint) {
+static jbyte Character_getDirectionalityImpl(JNIEnv*, jclass, jint codePoint) {
     return u_charDirection(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isMirroredImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isMirroredImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isMirrored(codePoint);
 }
 
-extern "C" jstring Java_java_lang_Character_getNameImpl(JNIEnv* env, jclass, jint codePoint) {
+static jstring Character_getNameImpl(JNIEnv* env, jclass, jint codePoint) {
     // U_UNICODE_CHAR_NAME gives us the modern names for characters. For control characters,
     // we need U_EXTENDED_CHAR_NAME to get "NULL" rather than "BASIC LATIN 0" and so on.
     // We could just use U_EXTENDED_CHAR_NAME except that it returns strings for characters
@@ -53,7 +61,7 @@ extern "C" jstring Java_java_lang_Character_getNameImpl(JNIEnv* env, jclass, jin
     return (U_FAILURE(status) || byteCount == 0) ? NULL : env->NewStringUTF(buf);
 }
 
-extern "C" jint Java_java_lang_Character_getNumericValueImpl(JNIEnv*, jclass, jint codePoint) {
+static jint Character_getNumericValueImpl(JNIEnv*, jclass, jint codePoint) {
     double result = u_getNumericValue(codePoint);
     if (result == U_NO_NUMERIC_VALUE) {
         return -1;
@@ -63,67 +71,67 @@ extern "C" jint Java_java_lang_Character_getNumericValueImpl(JNIEnv*, jclass, ji
     return static_cast<jint>(result);
 }
 
-extern "C" jboolean Java_java_lang_Character_isDefinedImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isDefinedImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isdefined(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isDigitImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isDigitImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isdigit(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isIdentifierIgnorableImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isIdentifierIgnorableImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isIDIgnorable(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isLetterImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isLetterImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isalpha(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isLetterOrDigitImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isLetterOrDigitImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isalnum(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isSpaceCharImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isSpaceCharImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isJavaSpaceChar(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isTitleCaseImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isTitleCaseImpl(JNIEnv*, jclass, jint codePoint) {
     return u_istitle(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isUnicodeIdentifierPartImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isUnicodeIdentifierPartImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isIDPart(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isUnicodeIdentifierStartImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isUnicodeIdentifierStartImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isIDStart(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isWhitespaceImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isWhitespaceImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isWhitespace(codePoint);
 }
 
-extern "C" jint Java_java_lang_Character_toLowerCaseImpl(JNIEnv*, jclass, jint codePoint) {
+static jint Character_toLowerCaseImpl(JNIEnv*, jclass, jint codePoint) {
     return u_tolower(codePoint);
 }
 
-extern "C" jint Java_java_lang_Character_toTitleCaseImpl(JNIEnv*, jclass, jint codePoint) {
+static jint Character_toTitleCaseImpl(JNIEnv*, jclass, jint codePoint) {
     return u_totitle(codePoint);
 }
 
-extern "C" jint Java_java_lang_Character_toUpperCaseImpl(JNIEnv*, jclass, jint codePoint) {
+static jint Character_toUpperCaseImpl(JNIEnv*, jclass, jint codePoint) {
     return u_toupper(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isUpperCaseImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isUpperCaseImpl(JNIEnv*, jclass, jint codePoint) {
     return u_isupper(codePoint);
 }
 
-extern "C" jboolean Java_java_lang_Character_isLowerCaseImpl(JNIEnv*, jclass, jint codePoint) {
+static jboolean Character_isLowerCaseImpl(JNIEnv*, jclass, jint codePoint) {
     return u_islower(codePoint);
 }
 
-extern "C" int Java_java_lang_Character_forNameImpl(JNIEnv* env, jclass, jstring javaBlockName) {
+static int Character_forNameImpl(JNIEnv* env, jclass, jstring javaBlockName) {
     ScopedUtfChars blockName(env, javaBlockName);
     if (blockName.c_str() == NULL) {
         return 0;
@@ -131,7 +139,45 @@ extern "C" int Java_java_lang_Character_forNameImpl(JNIEnv* env, jclass, jstring
     return u_getPropertyValueEnum(UCHAR_BLOCK, blockName.c_str());
 }
 
-extern "C" int Java_java_lang_Character_ofImpl(JNIEnv*, jclass, jint codePoint) {
+static int Character_ofImpl(JNIEnv*, jclass, jint codePoint) {
     return ublock_getCode(codePoint);
 }
 
+static jboolean Character_isAlphabetic(JNIEnv*, jclass, jint codePoint) {
+  return u_hasBinaryProperty(codePoint, UCHAR_ALPHABETIC);
+}
+
+static jboolean Character_isIdeographic(JNIEnv*, jclass, jint codePoint) {
+  return u_hasBinaryProperty(codePoint, UCHAR_IDEOGRAPHIC);
+}
+
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Character, digitImpl, "!(II)I"),
+    NATIVE_METHOD(Character, forNameImpl, "(Ljava/lang/String;)I"),
+    NATIVE_METHOD(Character, getDirectionalityImpl, "!(I)B"),
+    NATIVE_METHOD(Character, getNameImpl, "(I)Ljava/lang/String;"),
+    NATIVE_METHOD(Character, getNumericValueImpl, "!(I)I"),
+    NATIVE_METHOD(Character, getTypeImpl, "!(I)I"),
+    NATIVE_METHOD(Character, isAlphabetic, "!(I)Z"),
+    NATIVE_METHOD(Character, isDefinedImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isDigitImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isIdentifierIgnorableImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isIdeographic, "!(I)Z"),
+    NATIVE_METHOD(Character, isLetterImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isLetterOrDigitImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isLowerCaseImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isMirroredImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isSpaceCharImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isTitleCaseImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isUnicodeIdentifierPartImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isUnicodeIdentifierStartImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isUpperCaseImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, isWhitespaceImpl, "!(I)Z"),
+    NATIVE_METHOD(Character, ofImpl, "!(I)I"),
+    NATIVE_METHOD(Character, toLowerCaseImpl, "!(I)I"),
+    NATIVE_METHOD(Character, toTitleCaseImpl, "!(I)I"),
+    NATIVE_METHOD(Character, toUpperCaseImpl, "!(I)I"),
+};
+void register_java_lang_Character(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/lang/Character", gMethods, NELEM(gMethods));
+}

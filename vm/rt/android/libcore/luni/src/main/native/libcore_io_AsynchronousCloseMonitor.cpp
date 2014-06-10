@@ -21,12 +21,15 @@
 #include "JniConstants.h"
 #include "jni.h"
 
-extern "C" void Java_libcore_io_AsynchronousCloseMonitor_signalBlockedThreads(JNIEnv* env, jclass, jobject javaFd) {
+static void AsynchronousCloseMonitor_signalBlockedThreads(JNIEnv* env, jclass, jobject javaFd) {
     int fd = jniGetFDFromFileDescriptor(env, javaFd);
     AsynchronousSocketCloseMonitor::signalBlockedThreads(fd);
 }
 
-int register_libcore_io_AsynchronousCloseMonitor(JNIEnv* env) {
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(AsynchronousCloseMonitor, signalBlockedThreads, "(Ljava/io/FileDescriptor;)V"),
+};
+void register_libcore_io_AsynchronousCloseMonitor(JNIEnv* env) {
     AsynchronousSocketCloseMonitor::init();
-    return 0;
+    jniRegisterNativeMethods(env, "libcore/io/AsynchronousCloseMonitor", gMethods, NELEM(gMethods));
 }

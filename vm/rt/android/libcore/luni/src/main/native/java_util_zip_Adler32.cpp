@@ -23,7 +23,7 @@
 #include "jni.h"
 #include "zlib.h"
 
-extern "C" jlong Java_java_util_zip_Adler32_updateImpl(JNIEnv* env, jobject, jbyteArray byteArray, int off, int len, jlong crc) {
+static jlong Adler32_updateImpl(JNIEnv* env, jobject, jbyteArray byteArray, int off, int len, jlong crc) {
     ScopedByteArrayRO bytes(env, byteArray);
     if (bytes.get() == NULL) {
         return 0;
@@ -31,8 +31,15 @@ extern "C" jlong Java_java_util_zip_Adler32_updateImpl(JNIEnv* env, jobject, jby
     return adler32(crc, reinterpret_cast<const Bytef*>(bytes.get() + off), len);
 }
 
-extern "C" jlong Java_java_util_zip_Adler32_updateByteImpl(JNIEnv*, jobject, jint val, jlong crc) {
+static jlong Adler32_updateByteImpl(JNIEnv*, jobject, jint val, jlong crc) {
     Bytef bytefVal = val;
     return adler32(crc, reinterpret_cast<const Bytef*>(&bytefVal), 1);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Adler32, updateImpl, "([BIIJ)J"),
+    NATIVE_METHOD(Adler32, updateByteImpl, "(IJ)J"),
+};
+void register_java_util_zip_Adler32(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/util/zip/Adler32", gMethods, NELEM(gMethods));
+}

@@ -23,6 +23,7 @@ set(SRC
   s2_srvr.c
   s3_both.c
   s3_clnt.c
+  s3_cbc.c
   s3_enc.c
   s3_lib.c
   s3_meth.c

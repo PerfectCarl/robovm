@@ -37,26 +37,32 @@ static AsynchronousSocketCloseMonitor* blockedThreadList = NULL;
 /**
  * The specific signal chosen here is arbitrary.
  */
-// RoboVM note: Darwin doesn't have real-time signals. Use SIGUSR1 instead.
-#if defined(SIGRTMIN)
-    static const int BLOCKED_THREAD_SIGNAL = SIGRTMIN + 2;
+#if defined(__APPLE__)
+static const int BLOCKED_THREAD_SIGNAL = SIGUSR2;
 #else
-#if defined(WINDOWS)
-    static const int BLOCKED_THREAD_SIGNAL = 0;
-#else
-    static const int BLOCKED_THREAD_SIGNAL = SIGUSR1;
-#endif    
+#	if !defined(__MINGW32__) && !defined(__MINGW64__)
+static const int BLOCKED_THREAD_SIGNAL = SIGRTMIN + 2;
+#   else
+#       include <windows.h>
+#	endif
 #endif
 
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
 static void blockedThreadSignalHandler(int /*signal*/) {
     // Do nothing. We only sent this signal for its side-effect of interrupting syscalls.
 }
+#else
+
+VOID CALLBACK closeSocketApcCallback(ULONG_PTR socketParam) {
+	closesocket(static_cast<SOCKET>(socketParam));
+}
+#endif
 
 void AsynchronousSocketCloseMonitor::init() {
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
     // Ensure that the signal we send interrupts system calls but doesn't kill threads.
     // Using sigaction(2) lets us ensure that the SA_RESTART flag is not set.
     // (The whole reason we're sending this signal is to unblock system calls!)
-#if !defined(WINDOWS)
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = blockedThreadSignalHandler;
@@ -68,20 +74,30 @@ void AsynchronousSocketCloseMonitor::init() {
 #endif
 }
 
-void AsynchronousSocketCloseMonitor::signalBlockedThreads(int fd) {
+void AsynchronousSocketCloseMonitor::signalBlockedThreads(SOCKET fd) {
     ScopedPthreadMutexLock lock(&blockedThreadListMutex);
     for (AsynchronousSocketCloseMonitor* it = blockedThreadList; it != NULL; it = it->mNext) {
         if (it->mFd == fd) {
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
             pthread_kill(it->mThread, BLOCKED_THREAD_SIGNAL);
+#else
+            HANDLE hThread = OpenThread(THREAD_SET_CONTEXT, FALSE, it->mThreadId);
+            QueueUserAPC(closeSocketApcCallback, hThread, static_cast<ULONG_PTR>(it->mFd));
+            CloseHandle(hThread);
+#endif
             // Keep going, because there may be more than one thread...
         }
     }
 }
 
-AsynchronousSocketCloseMonitor::AsynchronousSocketCloseMonitor(int fd) {
+AsynchronousSocketCloseMonitor::AsynchronousSocketCloseMonitor(SOCKET fd) {
     ScopedPthreadMutexLock lock(&blockedThreadListMutex);
     // Who are we, and what are we waiting for?
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
     mThread = pthread_self();
+#else
+    mThreadId = GetCurrentThreadId();
+#endif
     mFd = fd;
     // Insert ourselves at the head of the intrusive doubly-linked list...
     mPrev = NULL;

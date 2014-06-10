@@ -19,8 +19,14 @@
 #include "JNIHelp.h"
 #include "JniConstants.h"
 
-extern "C" jboolean Java_java_nio_ByteOrder_isLittleEndian(JNIEnv*, jclass) {
+static jboolean ByteOrder_isLittleEndian(JNIEnv*, jclass) {
     int i = 1;
     return *reinterpret_cast<jbyte*>(&i) == 1;
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(ByteOrder, isLittleEndian, "!()Z"),
+};
+void register_java_nio_ByteOrder(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/nio/ByteOrder", gMethods, NELEM(gMethods));
+}

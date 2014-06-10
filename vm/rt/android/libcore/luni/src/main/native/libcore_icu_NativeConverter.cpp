@@ -15,6 +15,7 @@
 
 #define LOG_TAG "NativeConverter"
 
+#include "IcuUtilities.h"
 #include "JNIHelp.h"
 #include "JniConstants.h"
 #include "JniException.h"
@@ -67,39 +68,51 @@ static UConverter* toUConverter(jlong address) {
     return reinterpret_cast<UConverter*>(static_cast<uintptr_t>(address));
 }
 
-extern "C" jlong Java_libcore_icu_NativeConverter_openConverter(JNIEnv* env, jclass, jstring converterName) {
+static jlong NativeConverter_openConverter(JNIEnv* env, jclass, jstring converterName) {
     ScopedUtfChars converterNameChars(env, converterName);
     if (converterNameChars.c_str() == NULL) {
         return 0;
     }
     UErrorCode status = U_ZERO_ERROR;
     UConverter* cnv = ucnv_open(converterNameChars.c_str(), &status);
-    maybeThrowIcuException(env, status);
+    maybeThrowIcuException(env, "ucnv_open", status);
     return reinterpret_cast<uintptr_t>(cnv);
 }
 
-extern "C" void Java_libcore_icu_NativeConverter_closeConverter(JNIEnv*, jclass, jlong address) {
+static void NativeConverter_closeConverter(JNIEnv*, jclass, jlong address) {
     ucnv_close(toUConverter(address));
 }
 
-extern "C" jint Java_libcore_icu_NativeConverter_encode(JNIEnv* env, jclass, jlong address,
+static bool shouldCodecThrow(jboolean flush, UErrorCode error) {
+    if (flush) {
+        return (error != U_BUFFER_OVERFLOW_ERROR && error != U_TRUNCATED_CHAR_FOUND);
+    } else {
+        return (error != U_BUFFER_OVERFLOW_ERROR && error != U_INVALID_CHAR_FOUND && error != U_ILLEGAL_CHAR_FOUND);
+    }
+}
+
+static jint NativeConverter_encode(JNIEnv* env, jclass, jlong address,
         jcharArray source, jint sourceEnd, jbyteArray target, jint targetEnd,
         jintArray data, jboolean flush) {
 
     UConverter* cnv = toUConverter(address);
     if (cnv == NULL) {
+        maybeThrowIcuException(env, "toUConverter", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
     ScopedCharArrayRO uSource(env, source);
     if (uSource.get() == NULL) {
+        maybeThrowIcuException(env, "uSource", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
     ScopedByteArrayRW uTarget(env, target);
     if (uTarget.get() == NULL) {
+        maybeThrowIcuException(env, "uTarget", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
     ScopedIntArrayRW myData(env, data);
     if (myData.get() == NULL) {
+        maybeThrowIcuException(env, "myData", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
 
@@ -125,27 +138,36 @@ extern "C" jint Java_libcore_icu_NativeConverter_encode(JNIEnv* env, jclass, jlo
             myData[2] = invalidUCharCount;
         }
     }
+
+    // Managed code handles some cases; throw all other errors.
+    if (shouldCodecThrow(flush, errorCode)) {
+        maybeThrowIcuException(env, "ucnv_fromUnicode", errorCode);
+    }
     return errorCode;
 }
 
-extern "C" jint Java_libcore_icu_NativeConverter_decode(JNIEnv* env, jclass, jlong address,
+static jint NativeConverter_decode(JNIEnv* env, jclass, jlong address,
         jbyteArray source, jint sourceEnd, jcharArray target, jint targetEnd,
         jintArray data, jboolean flush) {
 
     UConverter* cnv = toUConverter(address);
     if (cnv == NULL) {
+        maybeThrowIcuException(env, "toUConverter", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
     ScopedByteArrayRO uSource(env, source);
     if (uSource.get() == NULL) {
+        maybeThrowIcuException(env, "uSource", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
     ScopedCharArrayRW uTarget(env, target);
     if (uTarget.get() == NULL) {
+        maybeThrowIcuException(env, "uTarget", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
     ScopedIntArrayRW myData(env, data);
     if (myData.get() == NULL) {
+        maybeThrowIcuException(env, "myData", U_ILLEGAL_ARGUMENT_ERROR);
         return U_ILLEGAL_ARGUMENT_ERROR;
     }
 
@@ -159,7 +181,8 @@ extern "C" jint Java_libcore_icu_NativeConverter_decode(JNIEnv* env, jclass, jlo
     UErrorCode errorCode = U_ZERO_ERROR;
     ucnv_toUnicode(cnv, &cTarget, cTargetLimit, &mySource, mySourceLimit, NULL, flush, &errorCode);
     *sourceOffset = mySource - reinterpret_cast<const char*>(uSource.get()) - *sourceOffset;
-    *targetOffset = cTarget - uTarget.get() - *targetOffset;
+	// CARL HACK (PR) (cast)
+    *targetOffset = cTarget - (jint)(uTarget.get()) - *targetOffset;
 
     // If there was an error, count the problematic bytes.
     if (errorCode == U_ILLEGAL_CHAR_FOUND || errorCode == U_INVALID_CHAR_FOUND) {
@@ -172,39 +195,43 @@ extern "C" jint Java_libcore_icu_NativeConverter_decode(JNIEnv* env, jclass, jlo
         }
     }
 
+    // Managed code handles some cases; throw all other errors.
+    if (shouldCodecThrow(flush, errorCode)) {
+        maybeThrowIcuException(env, "ucnv_toUnicode", errorCode);
+    }
     return errorCode;
 }
 
-extern "C" void Java_libcore_icu_NativeConverter_resetByteToChar(JNIEnv*, jclass, jlong address) {
+static void NativeConverter_resetByteToChar(JNIEnv*, jclass, jlong address) {
     UConverter* cnv = toUConverter(address);
     if (cnv) {
         ucnv_resetToUnicode(cnv);
     }
 }
 
-extern "C" void Java_libcore_icu_NativeConverter_resetCharToByte(JNIEnv*, jclass, jlong address) {
+static void NativeConverter_resetCharToByte(JNIEnv*, jclass, jlong address) {
     UConverter* cnv = toUConverter(address);
     if (cnv) {
         ucnv_resetFromUnicode(cnv);
     }
 }
 
-extern "C" jint Java_libcore_icu_NativeConverter_getMaxBytesPerChar(JNIEnv*, jclass, jlong address) {
+static jint NativeConverter_getMaxBytesPerChar(JNIEnv*, jclass, jlong address) {
     UConverter* cnv = toUConverter(address);
     return (cnv != NULL) ? ucnv_getMaxCharSize(cnv) : -1;
 }
 
-extern "C" jint Java_libcore_icu_NativeConverter_getMinBytesPerChar(JNIEnv*, jclass, jlong address) {
+static jint NativeConverter_getMinBytesPerChar(JNIEnv*, jclass, jlong address) {
     UConverter* cnv = toUConverter(address);
     return (cnv != NULL) ? ucnv_getMinCharSize(cnv) : -1;
 }
 
-extern "C" jfloat Java_libcore_icu_NativeConverter_getAveBytesPerChar(JNIEnv*, jclass, jlong address) {
+static jfloat NativeConverter_getAveBytesPerChar(JNIEnv*, jclass, jlong address) {
     UConverter* cnv = toUConverter(address);
     return (cnv != NULL) ? ((ucnv_getMaxCharSize(cnv) + ucnv_getMinCharSize(cnv)) / 2.0) : -1;
 }
 
-extern "C" jboolean Java_libcore_icu_NativeConverter_canEncode(JNIEnv*, jclass, jlong address, jint codeUnit) {
+static jboolean NativeConverter_canEncode(JNIEnv*, jclass, jlong address, jint codeUnit) {
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter* cnv = toUConverter(address);
     if (cnv == NULL) {
@@ -237,11 +264,6 @@ extern "C" jboolean Java_libcore_icu_NativeConverter_canEncode(JNIEnv*, jclass, 
  */
 static jstring getJavaCanonicalName(JNIEnv* env, const char* icuCanonicalName) {
     UErrorCode status = U_ZERO_ERROR;
-
-    // RoboVM change: Fix IllegalCharsetNameException on iOS
-    if (!strcmp("UTF-16,version=1", icuCanonicalName) || !strcmp("UTF-16,version=2", icuCanonicalName)) {
-        return env->NewStringUTF("x-JavaUnicode");
-    }
 
     // Check to see if this is a well-known MIME or IANA name.
     const char* cName = NULL;
@@ -277,7 +299,7 @@ static jstring getJavaCanonicalName(JNIEnv* env, const char* icuCanonicalName) {
     return env->NewStringUTF(&result[0]);
 }
 
-extern "C" jobjectArray Java_libcore_icu_NativeConverter_getAvailableCharsetNames(JNIEnv* env, jclass) {
+static jobjectArray NativeConverter_getAvailableCharsetNames(JNIEnv* env, jclass) {
     int32_t num = ucnv_countAvailable();
     jobjectArray result = env->NewObjectArray(num, JniConstants::stringClass, NULL);
     if (result == NULL) {
@@ -328,12 +350,6 @@ static jobjectArray getAliases(JNIEnv* env, const char* icuCanonicalName) {
 static const char* getICUCanonicalName(const char* name) {
     UErrorCode error = U_ZERO_ERROR;
     const char* canonicalName = NULL;
-
-    // RoboVM change: Fix IllegalCharsetNameException on iOS
-    if (!strcmp("x-JavaUnicode", name)) {
-        return "UTF-16,version=1";
-    }
-
     if ((canonicalName = ucnv_getCanonicalName(name, "MIME", &error)) != NULL) {
         return canonicalName;
     } else if((canonicalName = ucnv_getCanonicalName(name, "IANA", &error)) != NULL) {
@@ -398,11 +414,12 @@ static UConverterFromUCallback getFromUCallback(int32_t mode) {
     abort();
 }
 
-extern "C" jint Java_libcore_icu_NativeConverter_setCallbackEncode(JNIEnv* env, jclass, jlong address,
+static void NativeConverter_setCallbackEncode(JNIEnv* env, jclass, jlong address,
         jint onMalformedInput, jint onUnmappableInput, jbyteArray javaReplacement) {
     UConverter* cnv = toUConverter(address);
-    if (!cnv) {
-        return U_ILLEGAL_ARGUMENT_ERROR;
+    if (cnv == NULL) {
+        maybeThrowIcuException(env, "toUConverter", U_ILLEGAL_ARGUMENT_ERROR);
+        return;
     }
 
     UConverterFromUCallback oldCallback = NULL;
@@ -420,14 +437,15 @@ extern "C" jint Java_libcore_icu_NativeConverter_setCallbackEncode(JNIEnv* env, 
 
     ScopedByteArrayRO replacementBytes(env, javaReplacement);
     if (replacementBytes.get() == NULL) {
-        return U_ILLEGAL_ARGUMENT_ERROR;
+        maybeThrowIcuException(env, "replacementBytes", U_ILLEGAL_ARGUMENT_ERROR);
+        return;
     }
     memcpy(callbackContext->replacementBytes, replacementBytes.get(), replacementBytes.size());
     callbackContext->replacementByteCount = replacementBytes.size();
 
     UErrorCode errorCode = U_ZERO_ERROR;
     ucnv_setFromUCallBack(cnv, CHARSET_ENCODER_CALLBACK, callbackContext, NULL, NULL, &errorCode);
-    return errorCode;
+    maybeThrowIcuException(env, "ucnv_setFromUCallBack", errorCode);
 }
 
 static void decoderIgnoreCallback(const void*, UConverterToUnicodeArgs*, const char*, int32_t, UConverterCallbackReason, UErrorCode* err) {
@@ -480,11 +498,12 @@ static void CHARSET_DECODER_CALLBACK(const void* rawContext, UConverterToUnicode
     }
 }
 
-extern "C" jint Java_libcore_icu_NativeConverter_setCallbackDecode(JNIEnv* env, jclass, jlong address,
+static void NativeConverter_setCallbackDecode(JNIEnv* env, jclass, jlong address,
         jint onMalformedInput, jint onUnmappableInput, jstring javaReplacement) {
     UConverter* cnv = toUConverter(address);
     if (cnv == NULL) {
-        return U_ILLEGAL_ARGUMENT_ERROR;
+        maybeThrowIcuException(env, "toConverter", U_ILLEGAL_ARGUMENT_ERROR);
+        return;
     }
 
     UConverterToUCallback oldCallback;
@@ -502,21 +521,22 @@ extern "C" jint Java_libcore_icu_NativeConverter_setCallbackDecode(JNIEnv* env, 
 
     ScopedStringChars replacement(env, javaReplacement);
     if (replacement.get() == NULL) {
-        return U_ILLEGAL_ARGUMENT_ERROR;
+        maybeThrowIcuException(env, "replacement", U_ILLEGAL_ARGUMENT_ERROR);
+        return;
     }
     u_strncpy(callbackContext->replacementChars, replacement.get(), replacement.size());
     callbackContext->replacementCharCount = replacement.size();
 
     UErrorCode errorCode = U_ZERO_ERROR;
     ucnv_setToUCallBack(cnv, CHARSET_DECODER_CALLBACK, callbackContext, NULL, NULL, &errorCode);
-    return errorCode;
+    maybeThrowIcuException(env, "ucnv_setToUCallBack", errorCode);
 }
 
-extern "C" jfloat Java_libcore_icu_NativeConverter_getAveCharsPerByte(JNIEnv* env, jclass, jlong handle) {
-    return (1 / (jfloat) Java_libcore_icu_NativeConverter_getMaxBytesPerChar(env, NULL, handle));
+static jfloat NativeConverter_getAveCharsPerByte(JNIEnv* env, jclass, jlong handle) {
+    return (1 / (jfloat) NativeConverter_getMaxBytesPerChar(env, NULL, handle));
 }
 
-extern "C" jbyteArray Java_libcore_icu_NativeConverter_getSubstitutionBytes(JNIEnv* env, jclass, jlong address) {
+static jbyteArray NativeConverter_getSubstitutionBytes(JNIEnv* env, jclass, jlong address) {
     UConverter* cnv = toUConverter(address);
     if (cnv == NULL) {
         return NULL;
@@ -536,7 +556,7 @@ extern "C" jbyteArray Java_libcore_icu_NativeConverter_getSubstitutionBytes(JNIE
     return result;
 }
 
-extern "C" jboolean Java_libcore_icu_NativeConverter_contains(JNIEnv* env, jclass, jstring name1, jstring name2) {
+static jboolean NativeConverter_contains(JNIEnv* env, jclass, jstring name1, jstring name2) {
     ScopedUtfChars name1Chars(env, name1);
     if (name1Chars.c_str() == NULL) {
         return JNI_FALSE;
@@ -558,7 +578,7 @@ extern "C" jboolean Java_libcore_icu_NativeConverter_contains(JNIEnv* env, jclas
     return U_SUCCESS(errorCode) && set1.containsAll(set2);
 }
 
-extern "C" jobject Java_libcore_icu_NativeConverter_charsetForName(JNIEnv* env, jclass, jstring charsetName) {
+static jobject NativeConverter_charsetForName(JNIEnv* env, jclass, jstring charsetName) {
     ScopedUtfChars charsetNameChars(env, charsetName);
     if (charsetNameChars.c_str() == NULL) {
         return NULL;
@@ -570,7 +590,7 @@ extern "C" jobject Java_libcore_icu_NativeConverter_charsetForName(JNIEnv* env, 
     }
     // Get Java's canonical name for this charset.
     jstring javaCanonicalName = getJavaCanonicalName(env, icuCanonicalName);
-    if (env->ExceptionOccurred()) {
+    if (env->ExceptionCheck()) {
         return NULL;
     }
 
@@ -586,17 +606,39 @@ extern "C" jobject Java_libcore_icu_NativeConverter_charsetForName(JNIEnv* env, 
 
     // Get the aliases for this charset.
     jobjectArray aliases = getAliases(env, icuCanonicalName);
-    if (env->ExceptionOccurred()) {
+    if (env->ExceptionCheck()) {
         return NULL;
     }
 
     // Construct the CharsetICU object.
-    jmethodID charsetConstructor = env->GetMethodID(JniConstants::charsetICUClass, "<init>",
+    static jmethodID charsetConstructor = env->GetMethodID(JniConstants::charsetICUClass, "<init>",
             "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
-    if (env->ExceptionOccurred()) {
+    if (env->ExceptionCheck()) {
         return NULL;
     }
     return env->NewObject(JniConstants::charsetICUClass, charsetConstructor,
             javaCanonicalName, env->NewStringUTF(icuCanonicalName), aliases);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(NativeConverter, canEncode, "(JI)Z"),
+    NATIVE_METHOD(NativeConverter, charsetForName, "(Ljava/lang/String;)Ljava/nio/charset/Charset;"),
+    NATIVE_METHOD(NativeConverter, closeConverter, "(J)V"),
+    NATIVE_METHOD(NativeConverter, contains, "(Ljava/lang/String;Ljava/lang/String;)Z"),
+    NATIVE_METHOD(NativeConverter, decode, "(J[BI[CI[IZ)I"),
+    NATIVE_METHOD(NativeConverter, encode, "(J[CI[BI[IZ)I"),
+    NATIVE_METHOD(NativeConverter, getAvailableCharsetNames, "()[Ljava/lang/String;"),
+    NATIVE_METHOD(NativeConverter, getAveBytesPerChar, "(J)F"),
+    NATIVE_METHOD(NativeConverter, getAveCharsPerByte, "(J)F"),
+    NATIVE_METHOD(NativeConverter, getMaxBytesPerChar, "(J)I"),
+    NATIVE_METHOD(NativeConverter, getMinBytesPerChar, "(J)I"),
+    NATIVE_METHOD(NativeConverter, getSubstitutionBytes, "(J)[B"),
+    NATIVE_METHOD(NativeConverter, openConverter, "(Ljava/lang/String;)J"),
+    NATIVE_METHOD(NativeConverter, resetByteToChar, "(J)V"),
+    NATIVE_METHOD(NativeConverter, resetCharToByte, "(J)V"),
+    NATIVE_METHOD(NativeConverter, setCallbackDecode, "(JIILjava/lang/String;)V"),
+    NATIVE_METHOD(NativeConverter, setCallbackEncode, "(JII[B)V"),
+};
+void register_libcore_icu_NativeConverter(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "libcore/icu/NativeConverter", gMethods, NELEM(gMethods));
+}

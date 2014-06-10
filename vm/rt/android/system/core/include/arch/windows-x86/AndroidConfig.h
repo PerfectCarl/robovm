@@ -15,7 +15,12 @@
  */
 
 /*
- * Android config -- "Windows".  Used for desktop x86 Windows.
+ * Android config -- "CYGWIN_NT-5.1".  
+ *
+ * Cygwin has pthreads, but GDB seems to get confused if you use it to
+ * create threads.  By "confused", I mean it freezes up the first time the
+ * debugged process creates a thread, even if you use CreateThread.  The
+ * mere presence of pthreads linkage seems to cause problems.
  */
 #ifndef _ANDROID_CONFIG_H
 #define _ANDROID_CONFIG_H
@@ -37,15 +42,15 @@
  *
  * HAVE_PTHREADS - use the pthreads library.
  * HAVE_WIN32_THREADS - use Win32 thread primitives.
- *  -- combine HAVE_CREATETHREAD, HAVE_CREATEMUTEX, and HAVE__BEGINTHREADEX
  */
-#define HAVE_PTHREADS
+#define HAVE_WIN32_THREADS
 
 /*
  * Do we have the futex syscall?
  */
 
-#define HAVE_FUTEX
+/* #define HAVE_FUTEX */
+
 
 /*
  * Process creation model.  Choose one:
@@ -53,14 +58,18 @@
  * HAVE_FORKEXEC - use fork() and exec()
  * HAVE_WIN32_PROC - use CreateProcess()
  */
-#define HAVE_FORKEXEC
+#ifdef __CYGWIN__
+#  define HAVE_FORKEXEC
+#else
+#  define HAVE_WIN32_PROC
+#endif
 
 /*
  * Process out-of-memory adjustment.  Set if running on Linux,
  * where we can write to /proc/<pid>/oom_adj to modify the out-of-memory
  * badness adjustment.
  */
-#define HAVE_OOM_ADJ
+/* #define HAVE_OOM_ADJ */
 
 /*
  * IPC model.  Choose one:
@@ -70,7 +79,7 @@
  * HAVE_WIN32_IPC - use Win32 IPC (CreateSemaphore, CreateFileMapping).
  * HAVE_ANDROID_IPC - use Android versions (?, mmap).
  */
-#define HAVE_SYSV_IPC
+#define HAVE_WIN32_IPC
 
 /*
  * Memory-mapping model. Choose one:
@@ -78,61 +87,73 @@
  * HAVE_POSIX_FILEMAP - use the Posix sys/mmap.h
  * HAVE_WIN32_FILEMAP - use Win32 filemaps
  */
+#ifdef __CYGWIN__
+#define  HAVE_POSIX_FILEMAP
+#else
 #define  HAVE_WIN32_FILEMAP
+#endif
 
 /*
  * Define this if you have <termio.h>
  */
-#define  HAVE_TERMIO_H 1
+#ifdef __CYGWIN__
+#  define  HAVE_TERMIO_H
+#endif
 
 /*
  * Define this if you have <sys/sendfile.h>
  */
-#define  HAVE_SYS_SENDFILE_H 1
+#ifdef __CYGWIN__
+#  define  HAVE_SYS_SENDFILE_H 1
+#endif
 
 /*
  * Define this if you build against MSVCRT.DLL
  */
-/* #define HAVE_MS_C_RUNTIME */
+#ifndef __CYGWIN__
+#  define HAVE_MS_C_RUNTIME
+#endif
 
 /*
  * Define this if you have sys/uio.h
  */
-/* #define  HAVE_SYS_UIO_H 1 */
+#ifdef __CYGWIN__
+#define  HAVE_SYS_UIO_H
+#endif
+
+
+/*
+ * Define this if we have localtime_r().
+ */
+/* #define HAVE_LOCALTIME_R 1 */
+
+/*
+ * Define this if we have gethostbyname_r().
+ */
+/* #define HAVE_GETHOSTBYNAME_R */
+
+/*
+ * Define this if we have ioctl().
+ */
+/* #define HAVE_IOCTL */
+
+/*
+ * Define this if we want to use WinSock.
+ */
+#ifndef __CYGWIN__
+#define HAVE_WINSOCK
+#endif
 
 /*
  * Define this if your platforms implements symbolic links
  * in its filesystems
  */
-#define HAVE_SYMLINKS
-
-/*
- * Define this if we have localtime_s().
- */
-#define HAVE_LOCALTIME_S 1
-
-/*
- * Define this if we have gethostbyname_r().
- */
-#define HAVE_GETHOSTBYNAME_R
-
-/*
- * Define this if we have ioctl().
- */
-#define HAVE_IOCTL
-
-/*
- * Define this if we want to use WinSock.
- */
-/* #define HAVE_WINSOCK */
+/* #define HAVE_SYMLINKS */
 
 /*
  * Define this if have clock_gettime() and friends
- *
- * Desktop Linux has this in librt, but it's broken in goobuntu, yielding
- * mildly or wildly inaccurate results.
  */
-/*#define HAVE_POSIX_CLOCKS*/
+/* #define HAVE_POSIX_CLOCKS */
 
 /*
  * Define this if we have pthread_cond_timedwait_monotonic() and
@@ -141,18 +162,16 @@
 /* #define HAVE_TIMEDWAIT_MONOTONIC */
 
 /*
- * Define this if we have linux style epoll()
- */
-#define HAVE_EPOLL
-
-/*
  * Endianness of the target machine.  Choose one:
  *
  * HAVE_ENDIAN_H -- have endian.h header we can include.
  * HAVE_LITTLE_ENDIAN -- we are little endian.
  * HAVE_BIG_ENDIAN -- we are big endian.
  */
+#ifdef __CYGWIN__
 #define HAVE_ENDIAN_H
+#endif
+
 #define HAVE_LITTLE_ENDIAN
 
 /*
@@ -173,14 +192,7 @@
  * Needed for CallStack to operate; if not defined, CallStack is
  * non-functional.
  */
-#define HAVE_BACKTRACE 1
-
-/*
- * Defined if we have the dladdr() call for retrieving the symbol associated
- * with a memory address.  If not defined, stack crawls will not have symbolic
- * information.
- */
-#define HAVE_DLADDR 1
+#define HAVE_BACKTRACE 0
 
 /*
  * Defined if we have the cxxabi.h header for demangling C++ symbols.  If
@@ -189,53 +201,14 @@
 #define HAVE_CXXABI 0
 
 /*
- * Defined if we have the gettid() system call.
- */
-/* #define HAVE_GETTID */
-
-/* 
- * Defined if we have the sched_setscheduler() call
- */
-#define HAVE_SCHED_SETSCHEDULER
-
-/*
- * Add any extra platform-specific defines here.
- */
-
-/*
- * Define if we have <malloc.h> header
- */
-#define HAVE_MALLOC_H
-
-/*
- * Define if we have Linux-style non-filesystem Unix Domain Sockets
- */
-
-/*
- * What CPU architecture does this platform use?
- */
-#define ARCH_X86
-
-
-/*
- * Define if we have Linux's inotify in <sys/inotify.h>.
- */
-/*#define HAVE_INOTIFY 1*/
-
-/*
- * Define if we have madvise() in <sys/mman.h>
- */
-#define HAVE_MADVISE 1
-
-/*
  * Define if tm struct has tm_gmtoff field
  */
-#define HAVE_TM_GMTOFF 1
+/* #define HAVE_TM_GMTOFF 1 */
 
 /*
  * Define if dirent struct has d_type field
  */
-#define HAVE_DIRENT_D_TYPE 1
+/* #define HAVE_DIRENT_D_TYPE 1 */
 
 /*
  * Define if libc includes Android system properties implementation.
@@ -246,12 +219,31 @@
  * Define if system provides a system property server (should be
  * mutually exclusive with HAVE_LIBC_SYSTEM_PROPERTIES).
  */
-#define HAVE_SYSTEM_PROPERTY_SERVER
+/* #define HAVE_SYSTEM_PROPERTY_SERVER */
+
+/*
+ * Define if we have madvise() in <sys/mman.h>
+ */
+/*#define HAVE_MADVISE 1*/
+
+/*
+ * Add any extra platform-specific defines here.
+ */
+#define WIN32 1                 /* stock Cygwin doesn't define these */
+#define _WIN32 1
+#define _WIN32_WINNT 0x0500     /* admit to using >= Win2K */
+
+#define HAVE_WINDOWS_PATHS      /* needed by simulator */
+
+/*
+ * What CPU architecture does this platform use?
+ */
+#define ARCH_X86
 
 /*
  * sprintf() format string for shared library naming.
  */
-#define OS_SHARED_LIB_FORMAT_STR    "lib%s.so"
+#define OS_SHARED_LIB_FORMAT_STR    "lib%s.dll"
 
 /*
  * type for the third argument to mincore().
@@ -259,24 +251,24 @@
 #define MINCORE_POINTER_TYPE unsigned char *
 
 /*
- * Do we have the sigaction flag SA_NOCLDWAIT?
- */
-#define HAVE_SA_NOCLDWAIT
-
-/*
  * The default path separator for the platform
  */
-#define OS_PATH_SEPARATOR '/'
+#define OS_PATH_SEPARATOR '\\'
 
 /*
  * Is the filesystem case sensitive?
  */
-#define OS_CASE_SENSITIVE
+/* #define OS_CASE_SENSITIVE */
 
 /*
  * Define if <sys/socket.h> exists.
+ * Cygwin has it, but not MinGW.
  */
+#ifdef USE_MINGW
+/* #define HAVE_SYS_SOCKET_H */
+#else
 #define HAVE_SYS_SOCKET_H 1
+#endif
 
 /*
  * Define if the strlcpy() function exists on the system.
@@ -286,7 +278,7 @@
 /*
  * Define if the open_memstream() function exists on the system.
  */
-#define HAVE_OPEN_MEMSTREAM 1
+/* #define HAVE_OPEN_MEMSTREAM 1 */
 
 /*
  * Define if the BSD funopen() function exists on the system.
@@ -294,44 +286,56 @@
 /* #define HAVE_FUNOPEN 1 */
 
 /*
- * Define if prctl() exists
+ * Define if <winsock2.h> exists.
+ * Only MinGW has it.
  */
-#define HAVE_PRCTL 1
+#ifdef USE_MINGW
+#define HAVE_WINSOCK2_H 1
+#else
+/* #define HAVE_WINSOCK2_H */
+#endif
 
 /*
- * Define if writev() exists
+ * Various definitions missing in MinGW
  */
-#define HAVE_WRITEV 1
+#ifdef USE_MINGW
+#define S_IRGRP 0
+#endif
+
+/*
+ * Define if writev() exists.
+ */
+/* #define HAVE_WRITEV */
 
 /*
  * Define if <stdint.h> exists.
  */
-#define HAVE_STDINT_H 1
+/* #define HAVE_STDINT_H */
 
 /*
  * Define if <stdbool.h> exists.
  */
-#define HAVE_STDBOOL_H 1
+#define HAVE_STDBOOL_H
 
 /*
  * Define if <sched.h> exists.
  */
-#define HAVE_SCHED_H 1
+/* #define HAVE_SCHED_H */
 
 /*
  * Define if pread() exists
  */
-#define HAVE_PREAD 1
+/* #define HAVE_PREAD 1 */
 
 /*
  * Define if we have st_mtim in struct stat
  */
-#define HAVE_STAT_ST_MTIM 1
+/* #define HAVE_STAT_ST_MTIM 1 */
 
 /*
  * Define if printf() supports %zd for size_t arguments
  */
-#define HAVE_PRINTF_ZD 1
+/* #define HAVE_PRINTF_ZD 1 */
 
 /*
  * Define to 1 if <stdlib.h> provides qsort_r() with a BSD style function prototype.
@@ -341,10 +345,6 @@
 /*
  * Define to 1 if <stdlib.h> provides qsort_r() with a GNU style function prototype.
  */
-#if __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 8)
-#define HAVE_GNU_QSORT_R 1
-#else
 #define HAVE_GNU_QSORT_R 0
-#endif
 
 #endif /*_ANDROID_CONFIG_H*/

@@ -62,16 +62,9 @@ jlong Java_java_lang_System_nanoTime(JNIEnv* env, jclass clazz) {
     t /= info.denom;
     return (jlong) t;
 #else
-#ifdef WINDOWS
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    jlong time = (tv.tv_sec * 1000000LL) + (tv.tv_usec / 1000000LL);
-    return time;
-#else
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (jlong) ts.tv_sec * 1000000000LL + ts.tv_nsec;
-#endif
 #endif
 }
 

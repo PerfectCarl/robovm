@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 
+#include "IcuUtilities.h"
 #include "JNIHelp.h"
 #include "JniConstants.h"
 #include "JniException.h"
@@ -29,8 +30,8 @@
 
 // ICU documentation: http://icu-project.org/apiref/icu4c/classRegexMatcher.html
 
-static RegexMatcher* toRegexMatcher(jint addr) {
-    return reinterpret_cast<RegexMatcher*>(static_cast<uintptr_t>(addr));
+static RegexMatcher* toRegexMatcher(jlong address) {
+    return reinterpret_cast<RegexMatcher*>(static_cast<uintptr_t>(address));
 }
 
 /**
@@ -41,8 +42,8 @@ static RegexMatcher* toRegexMatcher(jint addr) {
  */
 class MatcherAccessor {
 public:
-    MatcherAccessor(JNIEnv* env, jint addr, jstring javaInput, bool reset) {
-        init(env, addr);
+    MatcherAccessor(JNIEnv* env, jlong address, jstring javaInput, bool reset) {
+        init(env, address);
 
         mJavaInput = javaInput;
         mChars = env->GetStringChars(mJavaInput, NULL);
@@ -62,8 +63,8 @@ public:
         }
     }
 
-    MatcherAccessor(JNIEnv* env, jint addr) {
-        init(env, addr);
+    MatcherAccessor(JNIEnv* env, jlong address) {
+        init(env, address);
     }
 
     ~MatcherAccessor() {
@@ -71,7 +72,7 @@ public:
         if (mJavaInput) {
             mEnv->ReleaseStringChars(mJavaInput, mChars);
         }
-        maybeThrowIcuException(mEnv, mStatus);
+        maybeThrowIcuException(mEnv, "utext_close", mStatus);
     }
 
     RegexMatcher* operator->() {
@@ -95,10 +96,10 @@ public:
     }
 
 private:
-    void init(JNIEnv* env, jint addr) {
+    void init(JNIEnv* env, jlong address) {
         mEnv = env;
         mJavaInput = NULL;
-        mMatcher = toRegexMatcher(addr);
+        mMatcher = toRegexMatcher(address);
         mChars = NULL;
         mStatus = U_ZERO_ERROR;
         mUText = NULL;
@@ -116,11 +117,11 @@ private:
     void operator=(const MatcherAccessor&);
 };
 
-extern "C" void Java_java_util_regex_Matcher_closeImpl(JNIEnv*, jclass, jint addr) {
-    delete toRegexMatcher(addr);
+static void Matcher_closeImpl(JNIEnv*, jclass, jlong address) {
+    delete toRegexMatcher(address);
 }
 
-extern "C" jint Java_java_util_regex_Matcher_findImpl(JNIEnv* env, jclass, jint addr, jstring javaText, jint startIndex, jintArray offsets) {
+static jint Matcher_findImpl(JNIEnv* env, jclass, jlong addr, jstring javaText, jint startIndex, jintArray offsets) {
     MatcherAccessor matcher(env, addr, javaText, false);
     UBool result = matcher->find(startIndex, matcher.status());
     if (result) {
@@ -129,7 +130,7 @@ extern "C" jint Java_java_util_regex_Matcher_findImpl(JNIEnv* env, jclass, jint 
     return result;
 }
 
-extern "C" jint Java_java_util_regex_Matcher_findNextImpl(JNIEnv* env, jclass, jint addr, jstring javaText, jintArray offsets) {
+static jint Matcher_findNextImpl(JNIEnv* env, jclass, jlong addr, jstring javaText, jintArray offsets) {
     MatcherAccessor matcher(env, addr, javaText, false);
     if (matcher.status() != U_ZERO_ERROR) {
         return -1;
@@ -141,17 +142,17 @@ extern "C" jint Java_java_util_regex_Matcher_findNextImpl(JNIEnv* env, jclass, j
     return result;
 }
 
-extern "C" jint Java_java_util_regex_Matcher_groupCountImpl(JNIEnv* env, jclass, jint addr) {
+static jint Matcher_groupCountImpl(JNIEnv* env, jclass, jlong addr) {
     MatcherAccessor matcher(env, addr);
     return matcher->groupCount();
 }
 
-extern "C" jint Java_java_util_regex_Matcher_hitEndImpl(JNIEnv* env, jclass, jint addr) {
+static jint Matcher_hitEndImpl(JNIEnv* env, jclass, jlong addr) {
     MatcherAccessor matcher(env, addr);
     return matcher->hitEnd();
 }
 
-extern "C" jint Java_java_util_regex_Matcher_lookingAtImpl(JNIEnv* env, jclass, jint addr, jstring javaText, jintArray offsets) {
+static jint Matcher_lookingAtImpl(JNIEnv* env, jclass, jlong addr, jstring javaText, jintArray offsets) {
     MatcherAccessor matcher(env, addr, javaText, false);
     UBool result = matcher->lookingAt(matcher.status());
     if (result) {
@@ -160,7 +161,7 @@ extern "C" jint Java_java_util_regex_Matcher_lookingAtImpl(JNIEnv* env, jclass, 
     return result;
 }
 
-extern "C" jint Java_java_util_regex_Matcher_matchesImpl(JNIEnv* env, jclass, jint addr, jstring javaText, jintArray offsets) {
+static jint Matcher_matchesImpl(JNIEnv* env, jclass, jlong addr, jstring javaText, jintArray offsets) {
     MatcherAccessor matcher(env, addr, javaText, false);
     UBool result = matcher->matches(matcher.status());
     if (result) {
@@ -169,31 +170,48 @@ extern "C" jint Java_java_util_regex_Matcher_matchesImpl(JNIEnv* env, jclass, ji
     return result;
 }
 
-extern "C" jint Java_java_util_regex_Matcher_openImpl(JNIEnv* env, jclass, jint patternAddr) {
+static jlong Matcher_openImpl(JNIEnv* env, jclass, jlong patternAddr) {
     RegexPattern* pattern = reinterpret_cast<RegexPattern*>(static_cast<uintptr_t>(patternAddr));
     UErrorCode status = U_ZERO_ERROR;
     RegexMatcher* result = pattern->matcher(status);
-    maybeThrowIcuException(env, status);
-    return static_cast<jint>(reinterpret_cast<uintptr_t>(result));
+    maybeThrowIcuException(env, "RegexPattern::matcher", status);
+    return reinterpret_cast<uintptr_t>(result);
 }
 
-extern "C" jint Java_java_util_regex_Matcher_requireEndImpl(JNIEnv* env, jclass, jint addr) {
+static jint Matcher_requireEndImpl(JNIEnv* env, jclass, jlong addr) {
     MatcherAccessor matcher(env, addr);
     return matcher->requireEnd();
 }
 
-extern "C" void Java_java_util_regex_Matcher_setInputImpl(JNIEnv* env, jclass, jint addr, jstring javaText, jint start, jint end) {
+static void Matcher_setInputImpl(JNIEnv* env, jclass, jlong addr, jstring javaText, jint start, jint end) {
     MatcherAccessor matcher(env, addr, javaText, true);
     matcher->region(start, end, matcher.status());
 }
 
-extern "C" void Java_java_util_regex_Matcher_useAnchoringBoundsImpl(JNIEnv* env, jclass, jint addr, jboolean value) {
+static void Matcher_useAnchoringBoundsImpl(JNIEnv* env, jclass, jlong addr, jboolean value) {
     MatcherAccessor matcher(env, addr);
     matcher->useAnchoringBounds(value);
 }
 
-extern "C" void Java_java_util_regex_Matcher_useTransparentBoundsImpl(JNIEnv* env, jclass, jint addr, jboolean value) {
+static void Matcher_useTransparentBoundsImpl(JNIEnv* env, jclass, jlong addr, jboolean value) {
     MatcherAccessor matcher(env, addr);
     matcher->useTransparentBounds(value);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Matcher, closeImpl, "(J)V"),
+    NATIVE_METHOD(Matcher, findImpl, "(JLjava/lang/String;I[I)Z"),
+    NATIVE_METHOD(Matcher, findNextImpl, "(JLjava/lang/String;[I)Z"),
+    NATIVE_METHOD(Matcher, groupCountImpl, "(J)I"),
+    NATIVE_METHOD(Matcher, hitEndImpl, "(J)Z"),
+    NATIVE_METHOD(Matcher, lookingAtImpl, "(JLjava/lang/String;[I)Z"),
+    NATIVE_METHOD(Matcher, matchesImpl, "(JLjava/lang/String;[I)Z"),
+    NATIVE_METHOD(Matcher, openImpl, "(J)J"),
+    NATIVE_METHOD(Matcher, requireEndImpl, "(J)Z"),
+    NATIVE_METHOD(Matcher, setInputImpl, "(JLjava/lang/String;II)V"),
+    NATIVE_METHOD(Matcher, useAnchoringBoundsImpl, "(JZ)V"),
+    NATIVE_METHOD(Matcher, useTransparentBoundsImpl, "(JZ)V"),
+};
+void register_java_util_regex_Matcher(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/util/regex/Matcher", gMethods, NELEM(gMethods));
+}

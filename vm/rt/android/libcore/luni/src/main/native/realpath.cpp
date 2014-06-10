@@ -30,6 +30,17 @@
 
 #include <string>
 
+#ifdef WIN32
+
+#include "mingw-extensions.h"
+
+bool realpath(const char* path, std::string& resolved_path) {
+    char resolved[MAX_PATH];
+    bool res = mingw_realpath(path, resolved);
+	resolved_path.assign(resolved);
+	return res;
+}
+#else
 #include <errno.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -89,8 +100,6 @@ bool realpath(const char* path, std::string& resolved) {
 
         // See if we've got a symbolic link, and resolve it if so.
         struct stat sb;
-// CARL misc C
-#ifndef WINDOWS
         if (lstat(resolved.c_str(), &sb) == 0 && S_ISLNK(sb.st_mode)) {
             if (symlinkCount++ > MAXSYMLINKS) {
                 errno = ELOOP;
@@ -117,7 +126,6 @@ bool realpath(const char* path, std::string& resolved) {
                 left = symlink;
             }
         }
-#endif
     }
 
     // Remove trailing slash except when the resolved pathname is a single "/".
@@ -126,3 +134,4 @@ bool realpath(const char* path, std::string& resolved) {
     }
     return true;
 }
+#endif

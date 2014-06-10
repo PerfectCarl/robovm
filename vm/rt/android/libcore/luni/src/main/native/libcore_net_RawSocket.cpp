@@ -27,21 +27,60 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <linux/rtnetlink.h>
 #include <net/if.h>
-#include <linux/if_ether.h>
-#include <linux/if_packet.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <netinet/ip.h>
-#include <linux/udp.h>
 
-union GCC_HIDDEN sockunion {
+#ifdef __linux__
+#  include <linux/rtnetlink.h>
+#  include <linux/if_ether.h>
+#  include <linux/if_packet.h>
+#  include <linux/udp.h>
+#else
+
+typedef uint16_t __be16;
+
+struct sockaddr_ll {
+  unsigned short sll_family;
+  __be16 sll_protocol;
+  int sll_ifindex;
+  unsigned short sll_hatype;
+  unsigned char sll_pkttype;
+  unsigned char sll_halen;
+  unsigned char sll_addr[8];
+};
+
+struct iphdr {
+  uint8_t ihl_version;
+  uint8_t tos;
+  uint16_t tot_len;
+  uint16_t id;
+  uint16_t frag_off;
+  uint8_t ttl;
+  uint8_t protocol;
+  uint16_t check;
+  uint32_t saddr;
+  uint32_t daddr;
+};
+
+struct udphdr {
+  __be16 source;
+  __be16 dest;
+  __be16 len;
+  __be16 check;
+};
+
+#  define PF_PACKET AF_INET
+#  define AF_PACKET AF_INET
+#endif
+
+union sockunion {
     sockaddr sa;
     sockaddr_ll sll;
-} su;
+};
 
 /*
  * Creates a socket suitable for raw socket operations.  The socket is
@@ -52,14 +91,16 @@ union GCC_HIDDEN sockunion {
  * variety of constructors for different socket types, then a generic
  * setBlocking() method followed by polymorphic bind().
  */
-extern "C" void Java_libcore_net_RawSocket_create(JNIEnv* env, jclass, jobject fileDescriptor,
-    jshort protocolType, jstring interfaceName) {
+static void RawSocket_create(JNIEnv* env, jclass, jobject fileDescriptor,
+    jshort protocolType, jstring interfaceName)
+{
 
   ScopedUtfChars ifname(env, interfaceName);
   if (ifname.c_str() == NULL) {
     return;
   }
 
+  sockunion su;
   memset(&su, 0, sizeof(su));
   su.sll.sll_family = PF_PACKET;
   su.sll.sll_protocol = htons(protocolType);
@@ -93,7 +134,7 @@ extern "C" void Java_libcore_net_RawSocket_create(JNIEnv* env, jclass, jobject f
  *
  * Assumes that the caller has validated the offset & byteCount values.
  */
-extern "C" int Java_libcore_net_RawSocket_sendPacket(JNIEnv* env, jclass, jobject fileDescriptor,
+static int RawSocket_sendPacket(JNIEnv* env, jclass, jobject fileDescriptor,
     jstring interfaceName, jshort protocolType, jbyteArray destMac,
     jbyteArray packet, jint offset, jint byteCount)
 {
@@ -118,6 +159,7 @@ extern "C" int Java_libcore_net_RawSocket_sendPacket(JNIEnv* env, jclass, jobjec
     return 0;
   }
 
+  sockunion su;
   memset(&su, 0, sizeof(su));
   su.sll.sll_hatype = htons(1); // ARPHRD_ETHER
   su.sll.sll_halen = mac.size();
@@ -144,7 +186,7 @@ extern "C" int Java_libcore_net_RawSocket_sendPacket(JNIEnv* env, jclass, jobjec
  *
  * Assumes that the caller has validated the offset & byteCount values.
  */
-extern "C" jint Java_libcore_net_RawSocket_recvPacket(JNIEnv* env, jclass, jobject fileDescriptor,
+static jint RawSocket_recvPacket(JNIEnv* env, jclass, jobject fileDescriptor,
     jbyteArray packet, jint offset, jint byteCount, jint port,
     jint timeout_millis)
 {
@@ -202,3 +244,12 @@ extern "C" jint Java_libcore_net_RawSocket_recvPacket(JNIEnv* env, jclass, jobje
   return size;
 }
 
+static JNINativeMethod gRawMethods[] = {
+  NATIVE_METHOD(RawSocket, create, "(Ljava/io/FileDescriptor;SLjava/lang/String;)V"),
+  NATIVE_METHOD(RawSocket, sendPacket, "(Ljava/io/FileDescriptor;Ljava/lang/String;S[B[BII)I"),
+  NATIVE_METHOD(RawSocket, recvPacket, "(Ljava/io/FileDescriptor;[BIIII)I"),
+};
+
+void register_libcore_net_RawSocket(JNIEnv* env) {
+  jniRegisterNativeMethods(env, "libcore/net/RawSocket", gRawMethods, NELEM(gRawMethods));
+}

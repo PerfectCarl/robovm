@@ -19,25 +19,25 @@
 
 #include "JniConstants.h"
 #include "ScopedPrimitiveArray.h"
-#include "zip.h"
+#include "ZipUtilities.h"
 
-extern "C" void Java_java_util_zip_Deflater_setDictionaryImpl(JNIEnv* env, jobject, jbyteArray dict, int off, int len, jlong handle) {
+static void Deflater_setDictionaryImpl(JNIEnv* env, jobject, jbyteArray dict, int off, int len, jlong handle) {
     toNativeZipStream(handle)->setDictionary(env, dict, off, len, false);
 }
 
-extern "C" jlong Java_java_util_zip_Deflater_getTotalInImpl(JNIEnv*, jobject, jlong handle) {
+static jlong Deflater_getTotalInImpl(JNIEnv*, jobject, jlong handle) {
     return toNativeZipStream(handle)->stream.total_in;
 }
 
-extern "C" jlong Java_java_util_zip_Deflater_getTotalOutImpl(JNIEnv*, jobject, jlong handle) {
+static jlong Deflater_getTotalOutImpl(JNIEnv*, jobject, jlong handle) {
     return toNativeZipStream(handle)->stream.total_out;
 }
 
-extern "C" jint Java_java_util_zip_Deflater_getAdlerImpl(JNIEnv*, jobject, jlong handle) {
+static jint Deflater_getAdlerImpl(JNIEnv*, jobject, jlong handle) {
     return toNativeZipStream(handle)->stream.adler;
 }
 
-extern "C" jlong Java_java_util_zip_Deflater_createStream(JNIEnv * env, jobject, jint level, jint strategy, jboolean noHeader) {
+static jlong Deflater_createStream(JNIEnv * env, jobject, jint level, jint strategy, jboolean noHeader) {
     UniquePtr<NativeZipStream> jstream(new NativeZipStream);
     if (jstream.get() == NULL) {
         jniThrowOutOfMemoryError(env, NULL);
@@ -62,11 +62,11 @@ extern "C" jlong Java_java_util_zip_Deflater_createStream(JNIEnv * env, jobject,
     return reinterpret_cast<uintptr_t>(jstream.release());
 }
 
-extern "C" void Java_java_util_zip_Deflater_setInputImpl(JNIEnv* env, jobject, jbyteArray buf, jint off, jint len, jlong handle) {
+static void Deflater_setInputImpl(JNIEnv* env, jobject, jbyteArray buf, jint off, jint len, jlong handle) {
     toNativeZipStream(handle)->setInput(env, buf, off, len);
 }
 
-extern "C" jint Java_java_util_zip_Deflater_deflateImpl(JNIEnv* env, jobject recv, jbyteArray buf, int off, int len, jlong handle, int flushStyle) {
+static jint Deflater_deflateImpl(JNIEnv* env, jobject recv, jbyteArray buf, int off, int len, jlong handle, int flushStyle) {
     NativeZipStream* stream = toNativeZipStream(handle);
     ScopedByteArrayRW out(env, buf);
     if (out.get() == NULL) {
@@ -106,13 +106,13 @@ extern "C" jint Java_java_util_zip_Deflater_deflateImpl(JNIEnv* env, jobject rec
     return bytesWritten;
 }
 
-extern "C" void Java_java_util_zip_Deflater_endImpl(JNIEnv*, jobject, jlong handle) {
+static void Deflater_endImpl(JNIEnv*, jobject, jlong handle) {
     NativeZipStream* stream = toNativeZipStream(handle);
     deflateEnd(&stream->stream);
     delete stream;
 }
 
-extern "C" void Java_java_util_zip_Deflater_resetImpl(JNIEnv* env, jobject, jlong handle) {
+static void Deflater_resetImpl(JNIEnv* env, jobject, jlong handle) {
     NativeZipStream* stream = toNativeZipStream(handle);
     int err = deflateReset(&stream->stream);
     if (err != Z_OK) {
@@ -120,7 +120,7 @@ extern "C" void Java_java_util_zip_Deflater_resetImpl(JNIEnv* env, jobject, jlon
     }
 }
 
-extern "C" void Java_java_util_zip_Deflater_setLevelsImpl(JNIEnv* env, jobject, int level, int strategy, jlong handle) {
+static void Deflater_setLevelsImpl(JNIEnv* env, jobject, int level, int strategy, jlong handle) {
     NativeZipStream* stream = toNativeZipStream(handle);
     // The deflateParams documentation says that avail_out must never be 0 because it may be
     // necessary to flush, but the Java API ensures that we only get here if there's nothing
@@ -134,3 +134,18 @@ extern "C" void Java_java_util_zip_Deflater_setLevelsImpl(JNIEnv* env, jobject, 
     }
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Deflater, createStream, "(IIZ)J"),
+    NATIVE_METHOD(Deflater, deflateImpl, "([BIIJI)I"),
+    NATIVE_METHOD(Deflater, endImpl, "(J)V"),
+    NATIVE_METHOD(Deflater, getAdlerImpl, "(J)I"),
+    NATIVE_METHOD(Deflater, getTotalInImpl, "(J)J"),
+    NATIVE_METHOD(Deflater, getTotalOutImpl, "(J)J"),
+    NATIVE_METHOD(Deflater, resetImpl, "(J)V"),
+    NATIVE_METHOD(Deflater, setDictionaryImpl, "([BIIJ)V"),
+    NATIVE_METHOD(Deflater, setInputImpl, "([BIIJ)V"),
+    NATIVE_METHOD(Deflater, setLevelsImpl, "(IIJ)V"),
+};
+void register_java_util_zip_Deflater(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/util/zip/Deflater", gMethods, NELEM(gMethods));
+}

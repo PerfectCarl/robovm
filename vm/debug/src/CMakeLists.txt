@@ -1,6 +1,14 @@
 project(debug)
 
-include_directories(../../core/include ${CMAKE_BINARY_DIR}/gc/include)
+if( WINDOWS ) 
+	include_directories(
+		../../core/include 
+		../../../../android-windows-binaries/dependencies/windows/gc/include)
+else()
+	include_directories(
+		../../core/include 
+		${CMAKE_BINARY_DIR}/gc/include)
+endif() 
 
 set(SRC
   debug.c 

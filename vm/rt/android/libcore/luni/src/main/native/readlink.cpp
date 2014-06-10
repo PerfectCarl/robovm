@@ -18,6 +18,14 @@
 #include "readlink.h"
 
 #include <string>
+
+#ifdef WIN32
+
+bool readlink(const char*, std::string&) {
+  return false;
+}
+
+#else
 #include <unistd.h>
 
 bool readlink(const char* path, std::string& result) {
@@ -26,11 +34,8 @@ bool readlink(const char* path, std::string& result) {
     size_t bufSize = 512;
     while (true) {
         LocalArray<512> buf(bufSize);
-        ssize_t len = -1;
-	#ifndef WINDOWS
-	len = readlink(path, &buf[0], buf.size());
-	#endif        
-	if (len == -1) {
+        ssize_t len = readlink(path, &buf[0], buf.size());
+        if (len == -1) {
             // An error occurred.
             return false;
         }
@@ -43,3 +48,4 @@ bool readlink(const char* path, std::string& result) {
         bufSize *= 2;
     }
 }
+#endif

@@ -32,7 +32,7 @@ static bool isLabelSeparator(const UChar ch) {
     }
 }
 
-extern "C" jstring Java_libcore_icu_NativeIDN_convertImpl(JNIEnv* env, jclass, jstring javaSrc, jint flags, jboolean toAscii) {
+static jstring NativeIDN_convertImpl(JNIEnv* env, jclass, jstring javaSrc, jint flags, jboolean toAscii) {
     ScopedStringChars src(env, javaSrc);
     if (src.get() == NULL) {
         return NULL;
@@ -59,3 +59,9 @@ extern "C" jstring Java_libcore_icu_NativeIDN_convertImpl(JNIEnv* env, jclass, j
     return env->NewString(&dst[0], resultLength);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(NativeIDN, convertImpl, "(Ljava/lang/String;IZ)Ljava/lang/String;"),
+};
+void register_libcore_icu_NativeIDN(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "libcore/icu/NativeIDN", gMethods, NELEM(gMethods));
+}

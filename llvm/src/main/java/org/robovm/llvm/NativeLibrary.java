@@ -40,20 +40,35 @@ public class NativeLibrary {
         String archProp = System.getProperty("os.arch").toLowerCase();
         if (osProp.startsWith("mac") || osProp.startsWith("darwin")) {
             os = "macosx";
+            libName = "librobovm-llvm" + ".dylib";
         } else if (osProp.startsWith("linux")) {
             os = "linux";
+            libName = "librobovm-llvm" + ".so";
+        } else if (osProp.startsWith("windows")) {
+            os = "windows";
+            libName = "librobovm-llvm" + ".dll";
         } else {
             throw new Error("Unsupported OS: " + System.getProperty("os.name"));
         }
-        if (archProp.matches("amd64|x86[-_]64")) {
-            arch = "x86_64";
-        } else if (archProp.matches("i386|x86")) {
-            arch = "x86";
+        if ("windows".equals(os)) {
+            String model = System.getProperty("sun.arch.data.model");
+            if ("32".equals(model))
+                arch = "x86";
+            else if ("64".equals(model))
+                arch = "x86_64";
+            else
+                throw new Error("Unsupported sun.arch.data.model: " + model);
+
         } else {
-            throw new Error("Unsupported arch: " + System.getProperty("os.arch"));
+            if (archProp.matches("amd64|x86[-_]64")) {
+                arch = "x86_64";
+            } else if (archProp.matches("i386|x86")) {
+                arch = "x86";
+            } else {
+                throw new Error("Unsupported arch: "
+                        + System.getProperty("os.arch"));
+            }
         }
-        
-        libName = "librobovm-llvm" + (os.equals("macosx") ? ".dylib" : ".so");
     }
     
     public static synchronized void load() {
@@ -64,9 +79,11 @@ public class NativeLibrary {
         String prefix = libName.substring(0, libName.lastIndexOf('.'));
         String ext = libName.substring(libName.lastIndexOf('.'));
         
-        InputStream in = NativeLibrary.class.getResourceAsStream("binding/" + os + "/" + arch + "/" + libName);
+        String path = "binding/" + os + "/" + arch + "/" + libName;
+        InputStream in = NativeLibrary.class.getResourceAsStream(path);
         if (in == null) {
-            throw new UnsatisfiedLinkError("Native library for " + os + "-" + arch + " not found");
+            throw new UnsatisfiedLinkError("Native library for " + os + "-"
+                    + arch + " not found. Path: " + path);
         }
         OutputStream out = null;
         File tmpLibFile = null;
@@ -82,9 +99,19 @@ public class NativeLibrary {
             closeQuietly(out);
         }
         
-        Runtime.getRuntime().load(tmpLibFile.getAbsolutePath());
-        if (!LLVM.StartMultithreaded()) {
-            throw new UnsatisfiedLinkError("LLVMStartMultithreaded failed");
+        path= tmpLibFile.getAbsolutePath() ;
+
+        boolean result=true;
+        try {
+            Runtime.getRuntime().load(path);
+            result = !LLVM.StartMultithreaded();
+        } catch (Throwable e) {
+            String message = "Error while loading: " +path ;
+            throw new RuntimeException(message, e) ;
+        }
+        if (result) {
+            String message = "LLVMStartMultithreaded failed while loading: " +path ;
+            throw new UnsatisfiedLinkError(message);
         }
         
         LLVM.InitializeAllTargets();

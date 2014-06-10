@@ -117,9 +117,6 @@ extern "C" {
 #undef X509_NAME
 #undef X509_CERT_PAIR
 #undef X509_EXTENSIONS
-#undef PKCS7_ISSUER_AND_SERIAL 
-#undef OCSP_REQUEST 
-#undef OCSP_RESPONSE
 #endif
 
 #define X509_FILETYPE_PEM	1

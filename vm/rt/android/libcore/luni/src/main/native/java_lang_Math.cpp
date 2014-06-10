@@ -23,83 +23,99 @@
 #include <stdlib.h>
 #include <math.h>
 
-extern "C" jdouble Java_java_lang_Math_tan(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_sin(JNIEnv*, jclass, jdouble a) {
+    return sin(a);
+}
+
+static jdouble Math_cos(JNIEnv*, jclass, jdouble a) {
+    return cos(a);
+}
+
+static jdouble Math_tan(JNIEnv*, jclass, jdouble a) {
     return tan(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_asin(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_asin(JNIEnv*, jclass, jdouble a) {
     return asin(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_acos(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_acos(JNIEnv*, jclass, jdouble a) {
     return acos(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_atan(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_atan(JNIEnv*, jclass, jdouble a) {
     return atan(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_exp(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_exp(JNIEnv*, jclass, jdouble a) {
     return exp(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_log(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_log(JNIEnv*, jclass, jdouble a) {
     return log(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_IEEEremainder(JNIEnv*, jclass, jdouble a, jdouble b) {
+static jdouble Math_IEEEremainder(JNIEnv*, jclass, jdouble a, jdouble b) {
     return remainder(a, b);
 }
 
-extern "C" jdouble Java_java_lang_Math_floor(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_floor(JNIEnv*, jclass, jdouble a) {
     return floor(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_ceil(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_ceil(JNIEnv*, jclass, jdouble a) {
     return ceil(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_rint(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_rint(JNIEnv*, jclass, jdouble a) {
     return rint(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_atan2(JNIEnv*, jclass, jdouble a, jdouble b) {
+static jdouble Math_atan2(JNIEnv*, jclass, jdouble a, jdouble b) {
     return atan2(a, b);
 }
 
-extern "C" jdouble Java_java_lang_Math_pow(JNIEnv*, jclass, jdouble a, jdouble b) {
+static jdouble Math_pow(JNIEnv*, jclass, jdouble a, jdouble b) {
     return pow(a, b);
 }
 
-extern "C" jdouble Java_java_lang_Math_sinh(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_sinh(JNIEnv*, jclass, jdouble a) {
     return sinh(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_tanh(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_tanh(JNIEnv*, jclass, jdouble a) {
     return tanh(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_cosh(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_cosh(JNIEnv*, jclass, jdouble a) {
     return cosh(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_log10(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_log10(JNIEnv*, jclass, jdouble a) {
     return log10(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_cbrt(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_cbrt(JNIEnv*, jclass, jdouble a) {
     return cbrt(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_expm1(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_sqrt(JNIEnv*, jclass, jdouble a) {
+    return sqrt(a);
+}
+
+static jdouble Math_expm1(JNIEnv*, jclass, jdouble a) {
     return expm1(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_hypot(JNIEnv*, jclass, jdouble a, jdouble b) {
+static jdouble Math_hypot(JNIEnv*, jclass, jdouble a, jdouble b) {
     return hypot(a, b);
 }
 
-extern "C" jdouble Java_java_lang_Math_log1p(JNIEnv*, jclass, jdouble a) {
+static jdouble Math_log1p(JNIEnv*, jclass, jdouble a) {
+    return log1p(a);
+}
+
+static jdouble Java_java_lang_Math_log1p(JNIEnv*, jclass, jdouble a) {
 // RoboVM note: log1p(-0.0) on Darwin x86 returns +0.0 even though the Apple docs say -0.0.
 #if defined(__APPLE__) && defined(__i386__)
     if (*((jlong*) &a) == 0x8000000000000000) return -0.0;
@@ -107,7 +123,37 @@ extern "C" jdouble Java_java_lang_Math_log1p(JNIEnv*, jclass, jdouble a) {
     return log1p(a);
 }
 
-extern "C" jdouble Java_java_lang_Math_nextafter(JNIEnv*, jclass, jdouble a, jdouble b) {
+static jdouble Math_nextafter(JNIEnv*, jclass, jdouble a, jdouble b) {
     return nextafter(a, b);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Math, IEEEremainder, "!(DD)D"),
+    NATIVE_METHOD(Math, acos, "!(D)D"),
+    NATIVE_METHOD(Math, asin, "!(D)D"),
+    NATIVE_METHOD(Math, atan, "!(D)D"),
+    NATIVE_METHOD(Math, atan2, "!(DD)D"),
+    NATIVE_METHOD(Math, cbrt, "!(D)D"),
+    NATIVE_METHOD(Math, ceil, "!(D)D"),
+    NATIVE_METHOD(Math, cos, "!(D)D"),
+    NATIVE_METHOD(Math, cosh, "!(D)D"),
+    NATIVE_METHOD(Math, exp, "!(D)D"),
+    NATIVE_METHOD(Math, expm1, "!(D)D"),
+    NATIVE_METHOD(Math, floor, "!(D)D"),
+    NATIVE_METHOD(Math, hypot, "!(DD)D"),
+    NATIVE_METHOD(Math, log, "!(D)D"),
+    NATIVE_METHOD(Math, log10, "!(D)D"),
+    NATIVE_METHOD(Math, log1p, "!(D)D"),
+    NATIVE_METHOD(Math, nextafter, "!(DD)D"),
+    NATIVE_METHOD(Math, pow, "!(DD)D"),
+    NATIVE_METHOD(Math, rint, "!(D)D"),
+    NATIVE_METHOD(Math, sin, "!(D)D"),
+    NATIVE_METHOD(Math, sinh, "!(D)D"),
+    NATIVE_METHOD(Math, sqrt, "!(D)D"),
+    NATIVE_METHOD(Math, tan, "!(D)D"),
+    NATIVE_METHOD(Math, tanh, "!(D)D"),
+};
+
+void register_java_lang_Math(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/lang/Math", gMethods, NELEM(gMethods));
+}

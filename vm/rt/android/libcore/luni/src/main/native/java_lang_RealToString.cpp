@@ -61,7 +61,7 @@
  *           1.2341234124312331E107
  *
  */
-extern "C" void Java_java_lang_RealToString_bigIntDigitGenerator(JNIEnv* env, jobject obj, jlong f, jint e,
+void RealToString_bigIntDigitGenerator(JNIEnv* env, jobject obj, jlong f, jint e,
         jboolean isDenormalized, jint p) {
   int RLength, SLength, TempLength, mplus_Length, mminus_Length;
   int high, low, i;
@@ -234,3 +234,9 @@ extern "C" void Java_java_lang_RealToString_bigIntDigitGenerator(JNIEnv* env, jo
   env->SetIntField(obj, firstKFid, firstK);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(RealToString, bigIntDigitGenerator, "(JIZI)V"),
+};
+void register_java_lang_RealToString(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/lang/RealToString", gMethods, NELEM(gMethods));
+}

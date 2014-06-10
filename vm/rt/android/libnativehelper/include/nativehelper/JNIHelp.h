@@ -19,19 +19,24 @@
  *
  * This file may be included by C or C++ code, which is trouble because jni.h
  * uses different typedefs for JNIEnv in each language.
+ *
+ * TODO: remove C support.
  */
 #ifndef NATIVEHELPER_JNIHELP_H_
 #define NATIVEHELPER_JNIHELP_H_
 
 #include "jni.h"
-#include "cutils/log.h"
 #include <unistd.h>
-#include <stdarg.h>
-#include <stdio.h>
 
 #ifndef NELEM
 # define NELEM(x) ((int) (sizeof(x) / sizeof((x)[0])))
 #endif
+
+// TODO: the build system doesn't ensure the standard C++ library header files are on the include
+// path when compiling C++, and this file is included all over the place.
+#ifdef LIBCORE_CPP_JNI_HELPERS
+#include <string>
+#endif // LIBCORE_CPP_JNI_HELPERS
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,6 +104,11 @@ int jniGetFDFromFileDescriptor(C_JNIEnv* env, jobject fileDescriptor);
 void jniSetFileDescriptorOfFD(C_JNIEnv* env, jobject fileDescriptor, int value);
 
 /*
+ * Returns the reference from a java.lang.ref.Reference.
+ */
+jobject jniGetReferent(C_JNIEnv* env, jobject ref);
+
+/*
  * Log a message and an exception.
  * If exception is NULL, logs the current exception in the JNI environment.
  */
@@ -159,23 +169,25 @@ inline void jniSetFileDescriptorOfFD(JNIEnv* env, jobject fileDescriptor, int va
     jniSetFileDescriptorOfFD(&env->functions, fileDescriptor, value);
 }
 
+inline jobject jniGetReferent(JNIEnv* env, jobject ref) {
+    return jniGetReferent(&env->functions, ref);
+}
+
 inline void jniLogException(JNIEnv* env, int priority, const char* tag, jthrowable exception = NULL) {
     jniLogException(&env->functions, priority, tag, exception);
 }
-#endif
 
-/* Logging macros.
- *
- * Logs an exception.  If the exception is omitted or NULL, logs the current exception
- * from the JNI environment, if any.
- */
-#define LOG_EX(env, priority, tag, ...) \
-    IF_ALOG(priority, tag) jniLogException(env, ANDROID_##priority, tag, ##__VA_ARGS__)
-#define LOGV_EX(env, ...) LOG_EX(env, LOG_VERBOSE, LOG_TAG, ##__VA_ARGS__)
-#define LOGD_EX(env, ...) LOG_EX(env, LOG_DEBUG, LOG_TAG, ##__VA_ARGS__)
-#define LOGI_EX(env, ...) LOG_EX(env, LOG_INFO, LOG_TAG, ##__VA_ARGS__)
-#define LOGW_EX(env, ...) LOG_EX(env, LOG_WARN, LOG_TAG, ##__VA_ARGS__)
-#define LOGE_EX(env, ...) LOG_EX(env, LOG_ERROR, LOG_TAG, ##__VA_ARGS__)
+#ifdef LIBCORE_CPP_JNI_HELPERS
+
+extern "C" std::string jniGetStackTrace(C_JNIEnv* env, jthrowable exception);
+
+inline std::string jniGetStackTrace(JNIEnv* env, jthrowable exception = NULL) {
+  return jniGetStackTrace(&env->functions, exception);
+}
+
+#endif // LIBCORE_CPP_JNI_HELPERS
+
+#endif
 
 /*
  * TEMP_FAILURE_RETRY is defined by some, but not all, versions of
@@ -192,54 +204,4 @@ inline void jniLogException(JNIEnv* env, int priority, const char* tag, jthrowab
     _rc; })
 #endif
 
-#if !defined(vasprintf)
-static int vasprintf(char **s, const char *format, va_list ap)
-{
-	/* Guess we need no more than 100 bytes. */
-	int n, size = 100;
-	va_list save_ap;
-
-	if ((*s = (char*) malloc(size)) == NULL)
-		return -1;
-	while (1) {
-		/* wwork on a copy of the va_list because of a bug
-		 in the vsnprintf implementation in x86_64 libc
-		 */
-#ifdef __va_copy
-		__va_copy(save_ap, ap);
-#else
-		save_ap = ap;
-#endif
-		/* Try to print in the allocated space. */
-		n = _vsnprintf(*s, size, format, save_ap);
-		va_end(save_ap);
-		/* If that worked, return the string. */
-		if (n > -1 && n < size) {
-			return n;
-		}
-		/* Else try again with more space. */
-		if (n > -1) { /* glibc 2.1 */
-			size = n + 1; /* precisely what is needed */
-		} else { /* glibc 2.0 */
-			size *= 2; /* twice the old size */
-		}
-		if ((*s = (char*) realloc(*s, size)) == NULL) {
-			return -1;
-		}
-	}
-}
-#endif
-
-#if !defined(asprintf)
-static int asprintf(char **s, const char *format, ...)
-{
-	va_list vals;
-	int result;
-
-	va_start(vals, format);
-	result = vasprintf(s, format, vals);
-	va_end(vals);
-	return result;
-}
-#endif
 #endif  /* NATIVEHELPER_JNIHELP_H_ */

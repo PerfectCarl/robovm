@@ -244,7 +244,10 @@ static void heapDumpCallback(void* ptr, unsigned char kind, size_t sz, void* dat
 }
 
 void gcHeapDump() {
+#ifndef WINDOWS
+	// CARL hack mem
     GC_apply_to_each_live_object(heapDumpCallback, NULL);
+#endif
 }
 
 jboolean initGC(Options* options) {
@@ -281,16 +284,23 @@ jboolean initGC(Options* options) {
 
 void gcRegisterCurrentThread() {
     struct GC_stack_base stackBase;
+#ifndef WINDOWS
+	// Carl HACK mem
     if (!GC_thread_is_registered()) {
         assert(GC_get_stack_base(&stackBase) == GC_SUCCESS);
         assert(GC_register_my_thread(&stackBase) == GC_SUCCESS);
     }
+#endif
 }
 
 void gcUnregisterCurrentThread() {
+#ifndef WINDOWS
+	// Carl HACK mem
     if (GC_thread_is_registered()) {
         GC_unregister_my_thread();
     }
+#endif
+
 }
 
 void gcAddRoot(void* ptr) {

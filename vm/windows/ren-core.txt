@@ -1,0 +1,17 @@
+_prim_Z prim_Z
+_prim_B prim_B
+_prim_C prim_C
+_prim_S prim_S
+_prim_I prim_I
+_prim_J prim_J
+_prim_F prim_F
+_prim_D prim_D
+_prim_V prim_V
+_array_Z array_Z
+_array_B array_B
+_array_C array_C
+_array_S array_S
+_array_I array_I
+_array_J array_J
+_array_F array_F
+_array_D array_D 

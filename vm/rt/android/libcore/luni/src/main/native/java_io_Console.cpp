@@ -21,19 +21,22 @@
 #include "JniConstants.h"
 
 #include <errno.h>
-#ifdef WINDOWS
+
+// Robovm note: (Carl)
+#if defined(__MINGW32__) || defined(__MINGW64__)
 #include <windows.h>
 #include <wincon.h>
 #include <conio.h>
 #else
 #include <termios.h>
 #endif
+
 #include <unistd.h>
 
-extern "C" jint Java_java_io_Console_setEchoImpl(JNIEnv* env, jclass, jboolean on, jint previousState) {
-// CARL termio
-#ifdef WINDOWS 
-	return 0;
+static jint Console_setEchoImpl(JNIEnv* env, jclass, jboolean on, jint previousState) {
+#if defined(__MINGW32__) || defined(__MINGW64__)
+	// CARL HACK (impl)
+	return 0 ; 
 #else
 	termios state;
     if (TEMP_FAILURE_RETRY(tcgetattr(STDIN_FILENO, &state)) == -1) {
@@ -52,4 +55,11 @@ extern "C" jint Java_java_io_Console_setEchoImpl(JNIEnv* env, jclass, jboolean o
     }
     return previousState;
 #endif
+}
+
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Console, setEchoImpl, "(ZI)I"),
+};
+void register_java_io_Console(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/io/Console", gMethods, NELEM(gMethods));
 }

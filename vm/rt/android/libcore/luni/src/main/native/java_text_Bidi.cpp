@@ -17,11 +17,13 @@
 
 #define LOG_TAG "Bidi"
 
+#include "IcuUtilities.h"
 #include "JNIHelp.h"
 #include "JniConstants.h"
 #include "JniException.h"
 #include "ScopedPrimitiveArray.h"
 #include "UniquePtr.h"
+// CARL can't be compiled with Clang
 #include "unicode/ubidi.h"
 
 #include <stdlib.h>
@@ -64,15 +66,15 @@ static UBiDi* uBiDi(jlong ptr) {
     return reinterpret_cast<BiDiData*>(static_cast<uintptr_t>(ptr))->uBiDi();
 }
 
-extern "C" jlong Java_java_text_Bidi_ubidi_1open(JNIEnv*, jclass) {
+static jlong Bidi_ubidi_open(JNIEnv*, jclass) {
     return reinterpret_cast<uintptr_t>(new BiDiData(ubidi_open()));
 }
 
-extern "C" void Java_java_text_Bidi_ubidi_1close(JNIEnv*, jclass, jlong ptr) {
+static void Bidi_ubidi_close(JNIEnv*, jclass, jlong ptr) {
     delete biDiData(ptr);
 }
 
-extern "C" void Java_java_text_Bidi_ubidi_1setPara(JNIEnv* env, jclass, jlong ptr, jcharArray text, jint length, jint paraLevel, jbyteArray newEmbeddingLevels) {
+static void Bidi_ubidi_setPara(JNIEnv* env, jclass, jlong ptr, jcharArray text, jint length, jint paraLevel, jbyteArray newEmbeddingLevels) {
     BiDiData* data = biDiData(ptr);
     // Copy the new embedding levels from the Java heap to the native heap.
     if (newEmbeddingLevels != NULL) {
@@ -88,37 +90,37 @@ extern "C" void Java_java_text_Bidi_ubidi_1setPara(JNIEnv* env, jclass, jlong pt
     }
     UErrorCode err = U_ZERO_ERROR;
     ubidi_setPara(data->uBiDi(), chars.get(), length, paraLevel, data->embeddingLevels(), &err);
-    maybeThrowIcuException(env, err);
+    maybeThrowIcuException(env, "ubidi_setPara", err);
 }
 
-extern "C" jlong Java_java_text_Bidi_ubidi_1setLine(JNIEnv* env, jclass, jlong ptr, jint start, jint limit) {
+static jlong Bidi_ubidi_setLine(JNIEnv* env, jclass, jlong ptr, jint start, jint limit) {
     UErrorCode status = U_ZERO_ERROR;
     UBiDi* sized = ubidi_openSized(limit - start, 0, &status);
-    if (maybeThrowIcuException(env, status)) {
+    if (maybeThrowIcuException(env, "ubidi_openSized", status)) {
         return 0;
     }
     UniquePtr<BiDiData> lineData(new BiDiData(sized));
     ubidi_setLine(uBiDi(ptr), start, limit, lineData->uBiDi(), &status);
-    maybeThrowIcuException(env, status);
+    maybeThrowIcuException(env, "ubidi_setLine", status);
     return reinterpret_cast<uintptr_t>(lineData.release());
 }
 
-extern "C" jint Java_java_text_Bidi_ubidi_1getDirection(JNIEnv*, jclass, jlong ptr) {
+static jint Bidi_ubidi_getDirection(JNIEnv*, jclass, jlong ptr) {
     return ubidi_getDirection(uBiDi(ptr));
 }
 
-extern "C" jint Java_java_text_Bidi_ubidi_1getLength(JNIEnv*, jclass, jlong ptr) {
+static jint Bidi_ubidi_getLength(JNIEnv*, jclass, jlong ptr) {
     return ubidi_getLength(uBiDi(ptr));
 }
 
-extern "C" jbyte Java_java_text_Bidi_ubidi_1getParaLevel(JNIEnv*, jclass, jlong ptr) {
+static jbyte Bidi_ubidi_getParaLevel(JNIEnv*, jclass, jlong ptr) {
     return ubidi_getParaLevel(uBiDi(ptr));
 }
 
-extern "C" jbyteArray Java_java_text_Bidi_ubidi_1getLevels(JNIEnv* env, jclass, jlong ptr) {
+static jbyteArray Bidi_ubidi_getLevels(JNIEnv* env, jclass, jlong ptr) {
     UErrorCode status = U_ZERO_ERROR;
     const UBiDiLevel* levels = ubidi_getLevels(uBiDi(ptr), &status);
-    if (maybeThrowIcuException(env, status)) {
+    if (maybeThrowIcuException(env, "ubidi_getLevels", status)) {
         return NULL;
     }
     int len = ubidi_getLength(uBiDi(ptr));
@@ -127,24 +129,25 @@ extern "C" jbyteArray Java_java_text_Bidi_ubidi_1getLevels(JNIEnv* env, jclass, 
     return result;
 }
 
-extern "C" jint Java_java_text_Bidi_ubidi_1countRuns(JNIEnv* env, jclass, jlong ptr) {
+static jint Bidi_ubidi_countRuns(JNIEnv* env, jclass, jlong ptr) {
     UErrorCode status = U_ZERO_ERROR;
     int count = ubidi_countRuns(uBiDi(ptr), &status);
-    maybeThrowIcuException(env, status);
+    maybeThrowIcuException(env, "ubidi_countRuns", status);
     return count;
 }
 
 /**
  * TODO: if we care about performance, we might just want to use an int[] instead of a Run[].
  */
-extern "C" jobjectArray Java_java_text_Bidi_ubidi_1getRuns(JNIEnv* env, jclass, jlong ptr) {
+static jobjectArray Bidi_ubidi_getRuns(JNIEnv* env, jclass, jlong ptr) {
     UBiDi* ubidi = uBiDi(ptr);
     UErrorCode status = U_ZERO_ERROR;
     int runCount = ubidi_countRuns(ubidi, &status);
-    if (maybeThrowIcuException(env, status)) {
+    if (maybeThrowIcuException(env, "ubidi_countRuns", status)) {
         return NULL;
     }
-    jmethodID bidiRunConstructor = env->GetMethodID(JniConstants::bidiRunClass, "<init>", "(III)V");
+    static jmethodID bidiRunConstructor =
+            env->GetMethodID(JniConstants::bidiRunClass, "<init>", "(III)V");
     jobjectArray runs = env->NewObjectArray(runCount, JniConstants::bidiRunClass, NULL);
     UBiDiLevel level = 0;
     int start = 0;
@@ -158,7 +161,7 @@ extern "C" jobjectArray Java_java_text_Bidi_ubidi_1getRuns(JNIEnv* env, jclass, 
     return runs;
 }
 
-extern "C" jintArray Java_java_text_Bidi_ubidi_1reorderVisual(JNIEnv* env, jclass, jbyteArray javaLevels, jint length) {
+static jintArray Bidi_ubidi_reorderVisual(JNIEnv* env, jclass, jbyteArray javaLevels, jint length) {
     ScopedByteArrayRO levelBytes(env, javaLevels);
     if (levelBytes.get() == NULL) {
         return NULL;
@@ -174,3 +177,19 @@ extern "C" jintArray Java_java_text_Bidi_ubidi_1reorderVisual(JNIEnv* env, jclas
     return result;
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Bidi, ubidi_close, "(J)V"),
+    NATIVE_METHOD(Bidi, ubidi_countRuns, "(J)I"),
+    NATIVE_METHOD(Bidi, ubidi_getDirection, "(J)I"),
+    NATIVE_METHOD(Bidi, ubidi_getLength, "(J)I"),
+    NATIVE_METHOD(Bidi, ubidi_getLevels, "(J)[B"),
+    NATIVE_METHOD(Bidi, ubidi_getParaLevel, "(J)B"),
+    NATIVE_METHOD(Bidi, ubidi_getRuns, "(J)[Ljava/text/Bidi$Run;"),
+    NATIVE_METHOD(Bidi, ubidi_open, "()J"),
+    NATIVE_METHOD(Bidi, ubidi_reorderVisual, "([BI)[I"),
+    NATIVE_METHOD(Bidi, ubidi_setLine, "(JII)J"),
+    NATIVE_METHOD(Bidi, ubidi_setPara, "(J[CII[B)V"),
+};
+void register_java_text_Bidi(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/text/Bidi", gMethods, NELEM(gMethods));
+}

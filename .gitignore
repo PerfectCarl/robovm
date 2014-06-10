@@ -25,3 +25,10 @@ a.out
 /tests/libcore/sqliteTest*.db
 /eclipse/ui/lib/
 /tmp/
+/carl
+/dependencies
+/llvm/dependencies
+/vm/rt/android.old
+/link/old
+/vm/rt/android/libcore/luni/src/test
+

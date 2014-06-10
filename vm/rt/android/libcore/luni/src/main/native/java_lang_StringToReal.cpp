@@ -25,7 +25,7 @@
 #include "cbigint.h"
 
 /* ************************* Defines ************************* */
-#if defined(__linux__) || defined(FREEBSD)
+#if defined(__linux__) || defined(__APPLE__)
 #define USE_LL
 #endif
 
@@ -988,7 +988,7 @@ OutOfMemory:
   return z;
 }
 
-extern "C" jfloat Java_java_lang_StringToReal_parseFltImpl(JNIEnv* env, jclass, jstring s, jint e) {
+static jfloat StringToReal_parseFltImpl(JNIEnv* env, jclass, jstring s, jint e) {
     ScopedUtfChars str(env, s);
     if (str.c_str() == NULL) {
         return 0.0;
@@ -996,7 +996,7 @@ extern "C" jfloat Java_java_lang_StringToReal_parseFltImpl(JNIEnv* env, jclass, 
     return createFloat(env, str.c_str(), e);
 }
 
-extern "C" jdouble Java_java_lang_StringToReal_parseDblImpl(JNIEnv* env, jclass, jstring s, jint e) {
+static jdouble StringToReal_parseDblImpl(JNIEnv* env, jclass, jstring s, jint e) {
     ScopedUtfChars str(env, s);
     if (str.c_str() == NULL) {
         return 0.0;
@@ -1004,3 +1004,10 @@ extern "C" jdouble Java_java_lang_StringToReal_parseDblImpl(JNIEnv* env, jclass,
     return createDouble(env, str.c_str(), e);
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(StringToReal, parseFltImpl, "(Ljava/lang/String;I)F"),
+    NATIVE_METHOD(StringToReal, parseDblImpl, "(Ljava/lang/String;I)D"),
+};
+void register_java_lang_StringToReal(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/lang/StringToReal", gMethods, NELEM(gMethods));
+}

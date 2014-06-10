@@ -19,10 +19,10 @@
 
 #include "JniConstants.h"
 #include "ScopedPrimitiveArray.h"
-#include "zip.h"
+#include "ZipUtilities.h"
 #include <errno.h>
 
-extern "C" jlong Java_java_util_zip_Inflater_createStream(JNIEnv* env, jobject, jboolean noHeader) {
+static jlong Inflater_createStream(JNIEnv* env, jobject, jboolean noHeader) {
     UniquePtr<NativeZipStream> jstream(new NativeZipStream);
     if (jstream.get() == NULL) {
         jniThrowOutOfMemoryError(env, NULL);
@@ -46,11 +46,11 @@ extern "C" jlong Java_java_util_zip_Inflater_createStream(JNIEnv* env, jobject, 
     return reinterpret_cast<uintptr_t>(jstream.release());
 }
 
-extern "C" void Java_java_util_zip_Inflater_setInputImpl(JNIEnv* env, jobject, jbyteArray buf, jint off, jint len, jlong handle) {
+static void Inflater_setInputImpl(JNIEnv* env, jobject, jbyteArray buf, jint off, jint len, jlong handle) {
     toNativeZipStream(handle)->setInput(env, buf, off, len);
 }
 
-extern "C" jint Java_java_util_zip_Inflater_setFileInputImpl(JNIEnv* env, jobject, jobject javaFileDescriptor, jlong off, jint len, jlong handle) {
+static jint Inflater_setFileInputImpl(JNIEnv* env, jobject, jobject javaFileDescriptor, jlong off, jint len, jlong handle) {
     NativeZipStream* stream = toNativeZipStream(handle);
 
     // We reuse the existing native buffer if it's large enough.
@@ -86,7 +86,7 @@ extern "C" jint Java_java_util_zip_Inflater_setFileInputImpl(JNIEnv* env, jobjec
     return totalByteCount;
 }
 
-extern "C" jint Java_java_util_zip_Inflater_inflateImpl(JNIEnv* env, jobject recv, jbyteArray buf, int off, int len, jlong handle) {
+static jint Inflater_inflateImpl(JNIEnv* env, jobject recv, jbyteArray buf, int off, int len, jlong handle) {
     NativeZipStream* stream = toNativeZipStream(handle);
     ScopedByteArrayRW out(env, buf);
     if (out.get() == NULL) {
@@ -127,32 +127,47 @@ extern "C" jint Java_java_util_zip_Inflater_inflateImpl(JNIEnv* env, jobject rec
     return bytesWritten;
 }
 
-extern "C" jint Java_java_util_zip_Inflater_getAdlerImpl(JNIEnv*, jobject, jlong handle) {
+static jint Inflater_getAdlerImpl(JNIEnv*, jobject, jlong handle) {
     return toNativeZipStream(handle)->stream.adler;
 }
 
-extern "C" void Java_java_util_zip_Inflater_endImpl(JNIEnv*, jobject, jlong handle) {
+static void Inflater_endImpl(JNIEnv*, jobject, jlong handle) {
     NativeZipStream* stream = toNativeZipStream(handle);
     inflateEnd(&stream->stream);
     delete stream;
 }
 
-extern "C" void Java_java_util_zip_Inflater_setDictionaryImpl(JNIEnv* env, jobject, jbyteArray dict, int off, int len, jlong handle) {
+static void Inflater_setDictionaryImpl(JNIEnv* env, jobject, jbyteArray dict, int off, int len, jlong handle) {
     toNativeZipStream(handle)->setDictionary(env, dict, off, len, true);
 }
 
-extern "C" void Java_java_util_zip_Inflater_resetImpl(JNIEnv* env, jobject, jlong handle) {
+static void Inflater_resetImpl(JNIEnv* env, jobject, jlong handle) {
     int err = inflateReset(&toNativeZipStream(handle)->stream);
     if (err != Z_OK) {
         throwExceptionForZlibError(env, "java/lang/IllegalArgumentException", err);
     }
 }
 
-extern "C" jlong Java_java_util_zip_Inflater_getTotalOutImpl(JNIEnv*, jobject, jlong handle) {
+static jlong Inflater_getTotalOutImpl(JNIEnv*, jobject, jlong handle) {
     return toNativeZipStream(handle)->stream.total_out;
 }
 
-extern "C" jlong Java_java_util_zip_Inflater_getTotalInImpl(JNIEnv*, jobject, jlong handle) {
+static jlong Inflater_getTotalInImpl(JNIEnv*, jobject, jlong handle) {
     return toNativeZipStream(handle)->stream.total_in;
 }
 
+static JNINativeMethod gMethods[] = {
+    NATIVE_METHOD(Inflater, createStream, "(Z)J"),
+    NATIVE_METHOD(Inflater, endImpl, "(J)V"),
+    NATIVE_METHOD(Inflater, getAdlerImpl, "(J)I"),
+    NATIVE_METHOD(Inflater, getTotalInImpl, "(J)J"),
+    NATIVE_METHOD(Inflater, getTotalOutImpl, "(J)J"),
+    NATIVE_METHOD(Inflater, inflateImpl, "([BIIJ)I"),
+    NATIVE_METHOD(Inflater, resetImpl, "(J)V"),
+    NATIVE_METHOD(Inflater, setDictionaryImpl, "([BIIJ)V"),
+    NATIVE_METHOD(Inflater, setFileInputImpl, "(Ljava/io/FileDescriptor;JIJ)I"),
+    NATIVE_METHOD(Inflater, setInputImpl, "([BIIJ)V"),
+};
+void register_java_util_zip_Inflater(JNIEnv* env) {
+    jniRegisterNativeMethods(env, "java/util/zip/Inflater", gMethods, NELEM(gMethods));
+}

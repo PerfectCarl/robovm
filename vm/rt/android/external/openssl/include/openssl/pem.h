@@ -70,13 +70,6 @@
 #include <openssl/x509.h>
 #include <openssl/pem2.h>
 
-#ifdef OPENSSL_SYS_WIN32
-/* Under Win32 these are defined in wincrypt.h */
-#undef X509_NAME
-#undef X509_CERT_PAIR
-#undef X509_EXTENSIONS
-#endif
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
