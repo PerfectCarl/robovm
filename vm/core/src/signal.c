@@ -60,11 +60,6 @@ static InstanceField* stackStateField = NULL;
 static CallStack* dumpThreadStackTraceCallStack = NULL;
 static sem_t dumpThreadStackTraceCallSemaphore;
 
-// CARL ;
-
-void CARL_start( char* string) ;
-void CARL_stop( char* string) ;
-
 #if !defined(WINDOWS)
 static void signalHandler_npe_so(int signum, siginfo_t* info, void* context);
 static void signalHandler_dump_thread(int signum, siginfo_t* info, void* context);
@@ -79,7 +74,6 @@ void registerDarwinExceptionHandler(void) {
 #endif
 
 jboolean rvmInitSignals(Env* env) {
-	CARL_start("rvmInitSignals");
     stackStateField = rvmGetInstanceField(env, java_lang_Throwable, "stackState", "J");
     if (!stackStateField) return FALSE;
     if (sem_init(&dumpThreadStackTraceCallSemaphore, 0, 0) != 0) {
@@ -88,12 +82,10 @@ jboolean rvmInitSignals(Env* env) {
 #if defined(DARWIN)
     registerDarwinExceptionHandler();
 #endif
-	CARL_stop("rvmInitSignals");
     return TRUE;
 }
 
 static jboolean installSignalHandlers(Env* env) {
-	CARL_start("installSignalHandlers");
 #if !defined(WINDOWS)
     struct sigaction sa;
 
@@ -133,7 +125,6 @@ static jboolean installSignalHandlers(Env* env) {
         return FALSE;        
     }
 #endif
-	CARL_stop("installSignalHandlers");
     return TRUE;
 }
 
@@ -145,20 +136,15 @@ jboolean rvmSetupSignals(Env* env) {
 }
 
 void rvmRestoreSignalMask(Env* env) {
-	CARL_start("rvmRestoreSignalMask");
 #if !defined(WINDOWS)
     pthread_sigmask(SIG_SETMASK, &env->currentThread->signalMask, NULL);
 #endif
-	CARL_stop("rvmRestoreSignalMask");
 }
 
 void rvmTearDownSignals(Env* env) {
-	CARL_start("rvmTearDownSignals");
-	CARL_stop("rvmTearDownSignals");
 }
 
 void dumpThreadStackTrace(Env* env, Thread* thread, CallStack* callStack) {
-	CARL_start("dumpThreadStackTrace");
 #if !defined(WINDOWS)
     // NOTE: This function must not be called concurrently. It uses global 
     // variables to transfer data to/from a signal handler.
@@ -172,7 +158,6 @@ void dumpThreadStackTrace(Env* env, Thread* thread, CallStack* callStack) {
     while (sem_wait(&dumpThreadStackTraceCallSemaphore) == EINTR) {
     }
 #endif
-	CARL_stop("dumpThreadStackTrace");
 }
 
 #if !defined(WINDOWS)

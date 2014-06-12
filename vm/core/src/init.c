@@ -80,20 +80,6 @@ static char* absolutize(char* basePath, char* rel, char* dest) {
     return dest;
 }
 
-//CARL debug 
-
-void CARL_start( char* string)
-{	
-	printf( "%s started\n", string ) ; 
-}
-void CARL_stop( char* string)
-{	
-	printf( "%s stopped\n", string ) ; 
-}
-void CARL_log( char* string)
-{	
-	printf( "** CARL %s\n", string ) ; 
-}
 
 static jboolean ignoreSignal(int signo) {
 #if !defined(WINDOWS)
@@ -101,7 +87,6 @@ static jboolean ignoreSignal(int signo) {
         return FALSE;
     }
 #endif
-	CARL_log( "Ignored signal") ;
 	return TRUE;
 }
 
@@ -120,12 +105,10 @@ static jboolean initClasspathEntries(Env* env, char* basePath, char** raw, Class
 }
 
 jboolean rvmInitOptions(int argc, char* argv[], Options* options, jboolean ignoreRvmArgs) {
-    CARL_start( "rvmInitOptions");
 	SystemProperty** nextProperty = &options->properties; //Keep a pointer to where the next SystemProperty* will go.
     char path[PATH_MAX];
 #ifdef WINDOWS
 	if (!c_realpath(argv[0], path)) {
-        CARL_log("Bye") ;
 		return FALSE;
     }
 
@@ -145,7 +128,6 @@ jboolean rvmInitOptions(int argc, char* argv[], Options* options, jboolean ignor
     }
 
     strcpy(options->basePath, path);
-	CARL_log("A1");
     jint firstJavaArg = 1;
     for (i = 1; i < argc; i++) {
         if (startsWith(argv[i], "-rvm:")) {
@@ -222,26 +204,21 @@ jboolean rvmInitOptions(int argc, char* argv[], Options* options, jboolean ignor
             break;
         }
     }
-	CARL_log("A2");
     options->commandLineArgs = NULL;
     options->commandLineArgsCount = argc - firstJavaArg;
-    CARL_log("A3");
 	if (options->commandLineArgsCount > 0) {
         options->commandLineArgs = &argv[firstJavaArg];
     }
-    CARL_stop( "rvmInitOptions");
 
     return options->mainClass != NULL;
 }
 
 VM* rvmCreateVM(Options* options) {
-    CARL_start( "rvmCreateVM");
 
 	VM* vm = gcAllocate(sizeof(VM));
     if (!vm) return NULL;
     vm->options = options;
     rvmInitJavaVM(vm);
-	CARL_stop( "rvmCreateVM");
 
     return vm;
 }

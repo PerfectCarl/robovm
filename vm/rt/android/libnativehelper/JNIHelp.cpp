@@ -20,9 +20,8 @@
 
 #include "JniConstants.h"
 #include "JNIHelp.h"
-#include "ALog-priv.h"
+#include "cutils/log.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -334,12 +333,6 @@ void jniSetFileDescriptorOfFD(C_JNIEnv* env, jobject fileDescriptor, int value) 
     JNIEnv* e = reinterpret_cast<JNIEnv*>(env);
     static jfieldID fid = e->GetFieldID(JniConstants::fileDescriptorClass, "descriptor", "I");
     (*env)->SetIntField(e, fileDescriptor, fid, value);
-}
-
-jobject jniGetReferent(C_JNIEnv* env, jobject ref) {
-    JNIEnv* e = reinterpret_cast<JNIEnv*>(env);
-    static jmethodID get = e->GetMethodID(JniConstants::referenceClass, "get", "()Ljava/lang/Object;");
-    return (*env)->CallObjectMethod(e, ref, get);
 }
 
 /*

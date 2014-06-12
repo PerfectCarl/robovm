@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "JniConstants"
-
-#include "ALog-priv.h"
 #include "JniConstants.h"
 #include "ScopedLocalRef.h"
 
@@ -57,7 +54,6 @@ jclass JniConstants::outputStreamClass;
 jclass JniConstants::parsePositionClass;
 jclass JniConstants::patternSyntaxExceptionClass;
 jclass JniConstants::realToStringClass;
-jclass JniConstants::referenceClass;
 jclass JniConstants::shortClass;
 jclass JniConstants::socketClass;
 jclass JniConstants::socketImplClass;
@@ -69,7 +65,7 @@ jclass JniConstants::structLingerClass;
 jclass JniConstants::structPasswdClass;
 jclass JniConstants::structPollfdClass;
 jclass JniConstants::structStatClass;
-jclass JniConstants::structStatVfsClass;
+jclass JniConstants::structStatFsClass;
 jclass JniConstants::structTimevalClass;
 jclass JniConstants::structUcredClass;
 jclass JniConstants::structUtsnameClass;
@@ -120,7 +116,6 @@ void JniConstants::init(JNIEnv* env) {
     parsePositionClass = findClass(env, "java/text/ParsePosition");
     patternSyntaxExceptionClass = findClass(env, "java/util/regex/PatternSyntaxException");
     realToStringClass = findClass(env, "java/lang/RealToString");
-    referenceClass = findClass(env, "java/lang/ref/Reference");
     shortClass = findClass(env, "java/lang/Short");
     socketClass = findClass(env, "java/net/Socket");
     socketImplClass = findClass(env, "java/net/SocketImpl");
@@ -132,7 +127,7 @@ void JniConstants::init(JNIEnv* env) {
     structPasswdClass = findClass(env, "libcore/io/StructPasswd");
     structPollfdClass = findClass(env, "libcore/io/StructPollfd");
     structStatClass = findClass(env, "libcore/io/StructStat");
-    structStatVfsClass = findClass(env, "libcore/io/StructStatVfs");
+    structStatFsClass = findClass(env, "libcore/io/StructStatFs");
     structTimevalClass = findClass(env, "libcore/io/StructTimeval");
     structUcredClass = findClass(env, "libcore/io/StructUcred");
     structUtsnameClass = findClass(env, "libcore/io/StructUtsname");

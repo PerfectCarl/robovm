@@ -75,7 +75,6 @@ struct JniConstants {
     static jclass parsePositionClass;
     static jclass patternSyntaxExceptionClass;
     static jclass realToStringClass;
-    static jclass referenceClass;
     static jclass shortClass;
     static jclass socketClass;
     static jclass socketImplClass;
@@ -87,7 +86,7 @@ struct JniConstants {
     static jclass structPasswdClass;
     static jclass structPollfdClass;
     static jclass structStatClass;
-    static jclass structStatVfsClass;
+    static jclass structStatFsClass;
     static jclass structTimevalClass;
     static jclass structUcredClass;
     static jclass structUtsnameClass;

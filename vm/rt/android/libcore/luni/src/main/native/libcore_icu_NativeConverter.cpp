@@ -182,7 +182,7 @@ static jint NativeConverter_decode(JNIEnv* env, jclass, jlong address,
     ucnv_toUnicode(cnv, &cTarget, cTargetLimit, &mySource, mySourceLimit, NULL, flush, &errorCode);
     *sourceOffset = mySource - reinterpret_cast<const char*>(uSource.get()) - *sourceOffset;
 	// CARL HACK (PR) (cast)
-    *targetOffset = cTarget - (jint)(uTarget.get()) - *targetOffset;
+    *targetOffset = cTarget - uTarget.get() - *targetOffset;
 
     // If there was an error, count the problematic bytes.
     if (errorCode == U_ILLEGAL_CHAR_FOUND || errorCode == U_INVALID_CHAR_FOUND) {

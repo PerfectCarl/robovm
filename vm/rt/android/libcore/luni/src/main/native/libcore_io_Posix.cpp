@@ -345,10 +345,9 @@ static jobject makeStructStatFs(JNIEnv* env, const struct statfs& sb) {
 
     jlong max_name_length = static_cast<jlong>(sb.f_namelen);
 #endif
-	// CARL HACK (PR) renamed Class, I guess...
-    static jmethodID ctor = env->GetMethodID(JniConstants::structStatVfsClass, "<init>",
+    static jmethodID ctor = env->GetMethodID(JniConstants::structStatFsClass, "<init>",
             "(JJJJJJJJ)V");
-    return env->NewObject(JniConstants::structStatVfsClass, ctor, static_cast<jlong>(sb.f_bsize),
+    return env->NewObject(JniConstants::structStatFsClass, ctor, static_cast<jlong>(sb.f_bsize),
             static_cast<jlong>(sb.f_blocks), static_cast<jlong>(sb.f_bfree),
             static_cast<jlong>(sb.f_bavail), static_cast<jlong>(sb.f_files),
             static_cast<jlong>(sb.f_ffree), max_name_length,
